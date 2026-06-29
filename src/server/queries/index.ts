@@ -214,10 +214,10 @@ export async function getAllThemes(): Promise<ThemeRow[]> {
 }
 
 export async function setActiveTheme(id: number): Promise<void> {
-  await db.transaction(async (tx) => {
-    await tx.update(themes).set({ isActive: false });
-    await tx.update(themes).set({ isActive: true }).where(eq(themes.id, id));
-  });
+  // better-sqlite3 is synchronous — can't use async transaction callback.
+  // Two sequential updates are fine for this simple case.
+  await db.update(themes).set({ isActive: false });
+  await db.update(themes).set({ isActive: true }).where(eq(themes.id, id));
 }
 
 export async function updateTheme(

@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
   const slugParam = searchParams.get("slug");
   const format = (searchParams.get("format") || "svg").toLowerCase();
   const size = Math.min(Math.max(Number(searchParams.get("size")) || 256, 64), 1024);
+  const download = searchParams.get("download") === "1";
 
   // Resolve the slug from settings if not provided.
   let slug = slugParam;
@@ -28,6 +29,10 @@ export async function GET(request: NextRequest) {
 
   const targetUrl = `${getOrigin(request)}/${slug}`;
 
+  const downloadHeaders = download
+    ? { "Content-Disposition": `attachment; filename="linkbreeze-${slug}.svg"` }
+    : {};
+
   try {
     if (format === "png") {
       const png = await generateQrPng(targetUrl, size);
@@ -36,6 +41,9 @@ export async function GET(request: NextRequest) {
         headers: {
           "Content-Type": "image/png",
           "Cache-Control": "public, max-age=3600, s-maxage=86400",
+          ...(download
+            ? { "Content-Disposition": `attachment; filename="linkbreeze-${slug}.png"` }
+            : {}),
         },
       });
     }
@@ -47,6 +55,7 @@ export async function GET(request: NextRequest) {
       headers: {
         "Content-Type": "image/svg+xml",
         "Cache-Control": "public, max-age=3600, s-maxage=86400",
+        ...downloadHeaders,
       },
     });
   } catch (err) {

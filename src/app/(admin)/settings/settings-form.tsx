@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { Save, ExternalLink } from "lucide-react";
 import { updateSettings } from "@/server/actions/settings";
 import type { ThemeRow } from "@/server/queries";
@@ -36,6 +37,7 @@ export function SettingsForm({
 }: SettingsFormProps) {
   const [pending, startTransition] = React.useTransition();
   const [saved, setSaved] = React.useState(false);
+  const router = useRouter();
   const [selectedTheme, setSelectedTheme] = React.useState<string>(
     activeThemeId ? String(activeThemeId) : "",
   );
@@ -46,6 +48,7 @@ export function SettingsForm({
     }
     startTransition(async () => {
       await updateSettings(formData);
+      router.refresh();
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
     });

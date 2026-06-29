@@ -32,6 +32,7 @@ import {
   toggleLink,
   reorderLinks,
 } from "@/server/actions/links";
+import { useRouter } from "next/navigation";
 import type { LinkRow } from "@/server/queries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,6 +76,7 @@ interface SortableLinkProps {
 function SortableLink({ link, onEdit, onDelete }: SortableLinkProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: link.id });
+  const router = useRouter();
 
   const style: React.CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -88,6 +90,7 @@ function SortableLink({ link, onEdit, onDelete }: SortableLinkProps) {
     setToggling(true);
     try {
       await toggleLink(link.id);
+      router.refresh();
     } finally {
       setToggling(false);
     }
@@ -180,6 +183,7 @@ function LinkDialog({ open, onOpenChange, editing }: LinkDialogProps) {
   const [type, setType] = React.useState(editing?.type ?? "url");
   const [highlighted, setHighlighted] = React.useState(editing?.isHighlighted ?? false);
   const [active, setActive] = React.useState(editing?.isActive ?? true);
+  const router = useRouter();
 
   // Reset state when the dialog opens for a different link.
   React.useEffect(() => {
@@ -190,7 +194,32 @@ function LinkDialog({ open, onOpenChange, editing }: LinkDialogProps) {
     }
   }, [open, editing]);
 
+  const urlLabel =
+    type === "email" ? "Email address"
+    : type === "phone" ? "Phone number"
+    : type === "whatsapp" ? "WhatsApp number"
+    : type === "sms" ? "Phone number"
+    : "URL";
+
+  const urlPlaceholder =
+    type === "email" ? "you@example.com"
+    : type === "phone" ? "+212600000000"
+    : type === "whatsapp" ? "+212600000000"
+    : type === "sms" ? "+212600000000"
+    : "https://example.com";
+
   const handleSubmit = (formData: FormData) => {
+    // Prepend the correct prefix for non-URL types
+    const rawUrl = (formData.get("url") as string) || "";
+    if (type === "email" && !rawUrl.startsWith("mailto:")) {
+      formData.set("url", `mailto:${rawUrl}`);
+    } else if (type === "phone" && !rawUrl.startsWith("tel:")) {
+      formData.set("url", `tel:${rawUrl}`);
+    } else if (type === "whatsapp" && !rawUrl.startsWith("https://wa.me/")) {
+      formData.set("url", `https://wa.me/${rawUrl.replace(/[^0-9]/g, "")}`);
+    } else if (type === "sms" && !rawUrl.startsWith("sms:")) {
+      formData.set("url", `sms:${rawUrl}`);
+    }
     formData.set("type", type);
     formData.set("isHighlighted", highlighted ? "on" : "off");
     formData.set("isActive", active ? "on" : "off");
@@ -201,6 +230,7 @@ function LinkDialog({ open, onOpenChange, editing }: LinkDialogProps) {
       } else {
         await createLink(formData);
       }
+      router.refresh();
       onOpenChange(false);
     });
   };
@@ -230,14 +260,14 @@ function LinkDialog({ open, onOpenChange, editing }: LinkDialogProps) {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="url">URL</Label>
+            <Label htmlFor="url">{urlLabel}</Label>
             <Input
               id="url"
               name="url"
               defaultValue={editing?.url ?? ""}
               required
               maxLength={2048}
-              placeholder="https://example.com"
+              placeholder={urlPlaceholder}
             />
           </div>
 
@@ -303,6 +333,7 @@ function DeleteDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const [pending, startTransition] = React.useTransition();
+  const router = useRouter();
 
   const handleDelete = () => {
     if (!link) return;
@@ -310,6 +341,7 @@ function DeleteDialog({
       const fd = new FormData();
       fd.set("id", String(link.id));
       await deleteLink(fd);
+      router.refresh();
       onOpenChange(false);
     });
   };
