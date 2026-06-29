@@ -65,10 +65,13 @@ export function LinkCard({ link, theme }: LinkCardProps) {
     ? `<p style="font-size:12px;opacity:.7;margin:2px 0 0">${description}</p>`
     : "";
 
+  // Non-http links (mailto:, tel:, sms:) should not open in new tab
+  const isExternalUrl = href.startsWith("http://") || href.startsWith("https://");
+  const targetAttr = isExternalUrl ? `target="_blank" rel="noopener noreferrer nofollow"` : "";
+
   const html = `<a
     href="${href}"
-    target="_blank"
-    rel="noopener noreferrer nofollow"
+    ${targetAttr}
     onclick="${clickHandler}"
     style="
       display:flex;align-items:center;text-decoration:none;

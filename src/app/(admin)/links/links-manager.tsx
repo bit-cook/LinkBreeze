@@ -378,6 +378,12 @@ export function LinksManager({ initialLinks }: { initialLinks: LinkRow[] }) {
   const [editing, setEditing] = React.useState<LinkRow | null>(null);
   const [deleting, setDeleting] = React.useState<LinkRow | null>(null);
   const [deleteOpen, setDeleteOpen] = React.useState(false);
+  const router = useRouter();
+
+  // Sync local state when server data changes (after router.refresh())
+  React.useEffect(() => {
+    setItems(initialLinks);
+  }, [initialLinks]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
