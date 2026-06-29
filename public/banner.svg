@@ -1,0 +1,191 @@
+<svg width="1280" height="640" viewBox="0 0 1280 640" xmlns="http://www.w3.org/2000/svg">
+  <!--
+    LinkBreeze GitHub Banner — 1280x640
+    Layout: Logo mark (left) + wordmark + tagline + feature pills
+    Background: #0f0c29 with subtle radial depth and dot pattern
+  -->
+  <defs>
+    <!-- Background radial -->
+    <radialGradient id="bannerBg" cx="35%" cy="45%" r="80%">
+      <stop offset="0%" stop-color="#13102e"/>
+      <stop offset="100%" stop-color="#0a0820"/>
+    </radialGradient>
+
+    <!-- Dot pattern for texture -->
+    <pattern id="dotPattern" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <circle cx="20" cy="20" r="1" fill="#ffffff" opacity="0.04"/>
+    </pattern>
+
+    <!-- Logo gradients (same as mark) -->
+    <linearGradient id="bw1" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#533fd6"/>
+      <stop offset="50%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+    <linearGradient id="bw2" x1="80%" y1="100%" x2="20%" y2="0%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="50%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#c4b5fd"/>
+    </linearGradient>
+    <linearGradient id="bwShine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25"/>
+      <stop offset="50%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+
+    <!-- Wordmark gradient -->
+    <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#e2e8f0"/>
+      <stop offset="100%" stop-color="#c4b5fd"/>
+    </linearGradient>
+
+    <!-- Subtle glow behind logo -->
+    <radialGradient id="logoGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1280" height="640" fill="url(#bannerBg)"/>
+  <rect width="1280" height="640" fill="url(#dotPattern)"/>
+
+  <!-- Logo glow halo -->
+  <ellipse cx="280" cy="320" rx="240" ry="220" fill="url(#logoGlow)"/>
+
+  <!-- ════════════════════════════════════════════════
+       LOGO MARK (no container) — centered at ~280, 320
+       Scaled to fit ~320px wide
+       ════════════════════════════════════════════════ -->
+  <g transform="translate(120, 160) scale(0.625)">
+    <!-- Upper ribbon -->
+    <path d="M 170 160
+             C 220 125, 290 120, 340 150
+             C 385 180, 400 240, 375 280
+             C 360 300, 335 295, 330 275
+             C 345 255, 350 220, 325 195
+             C 295 165, 245 165, 200 185
+             C 185 170, 175 162, 170 160 Z"
+          fill="url(#bw1)"/>
+    <path d="M 170 160
+             C 220 125, 290 120, 340 150
+             C 385 180, 400 240, 375 280
+             C 360 300, 335 295, 330 275
+             C 345 255, 350 220, 325 195
+             C 295 165, 245 165, 200 185
+             C 185 170, 175 162, 170 160 Z"
+          fill="url(#bwShine)"/>
+    <!-- Lower ribbon -->
+    <path d="M 342 352
+             C 292 387, 222 392, 172 362
+             C 127 332, 112 272, 137 232
+             C 152 212, 177 217, 182 237
+             C 167 257, 162 292, 187 317
+             C 217 347, 267 347, 312 327
+             C 327 342, 337 350, 342 352 Z"
+          fill="url(#bw2)"
+          opacity="0.92"/>
+    <!-- Breeze streams -->
+    <path d="M 190 250 C 230 240, 282 240, 322 250"
+          stroke="#c4b5fd" stroke-width="3" fill="none"
+          stroke-linecap="round" opacity="0.5"/>
+    <path d="M 205 266 C 235 258, 277 258, 307 266"
+          stroke="#ddd6fe" stroke-width="2" fill="none"
+          stroke-linecap="round" opacity="0.35"/>
+    <path d="M 225 282 C 240 276, 272 276, 287 282"
+          stroke="#a78bfa" stroke-width="1.5" fill="none"
+          stroke-linecap="round" opacity="0.25"/>
+  </g>
+
+  <!-- ════════════════════════════════════════════════
+       WORDMARK — "LinkBreeze"
+       ════════════════════════════════════════════════ -->
+  <text x="560" y="240"
+        font-family="Space Grotesk, Inter, sans-serif"
+        font-size="64" font-weight="700"
+        fill="url(#textGrad)"
+        letter-spacing="-2">
+    Link<tspan fill="#a78bfa">Breeze</tspan>
+  </text>
+
+  <!-- ════════════════════════════════════════════════
+       TAGLINE
+       ════════════════════════════════════════════════ -->
+  <text x="560" y="295"
+        font-family="Inter, sans-serif"
+        font-size="22" font-weight="400"
+        fill="#94a3b8"
+        letter-spacing="0.3">
+    Self-hosted link-in-bio. The Linktree alternative you own.
+  </text>
+
+  <!-- ════════════════════════════════════════════════
+       FEATURE PILLS
+       ════════════════════════════════════════════════ -->
+  <!-- Pill 1: Self-Hosted -->
+  <rect x="560" y="340" width="160" height="42" rx="21"
+        fill="none" stroke="#533fd6" stroke-width="1.5" opacity="0.7"/>
+  <text x="640" y="367"
+        font-family="Inter, sans-serif"
+        font-size="15" font-weight="500"
+        fill="#c4b5fd"
+        text-anchor="middle">
+    🔒 Self-Hosted
+  </text>
+
+  <!-- Pill 2: Analytics -->
+  <rect x="735" y="340" width="145" height="42" rx="21"
+        fill="none" stroke="#533fd6" stroke-width="1.5" opacity="0.7"/>
+  <text x="807" y="367"
+        font-family="Inter, sans-serif"
+        font-size="15" font-weight="500"
+        fill="#c4b5fd"
+        text-anchor="middle">
+    📊 Analytics
+  </text>
+
+  <!-- Pill 3: QR Codes -->
+  <rect x="895" y="340" width="140" height="42" rx="21"
+        fill="none" stroke="#533fd6" stroke-width="1.5" opacity="0.7"/>
+  <text x="965" y="367"
+        font-family="Inter, sans-serif"
+        font-size="15" font-weight="500"
+        fill="#c4b5fd"
+        text-anchor="middle">
+    📱 QR Codes
+  </text>
+
+  <!-- Pill 4: Themes -->
+  <rect x="1050" y="340" width="125" height="42" rx="21"
+        fill="none" stroke="#533fd6" stroke-width="1.5" opacity="0.7"/>
+  <text x="1112" y="367"
+        font-family="Inter, sans-serif"
+        font-size="15" font-weight="500"
+        fill="#c4b5fd"
+        text-anchor="middle">
+    🎨 Themes
+  </text>
+
+  <!-- ════════════════════════════════════════════════
+       FOOTER — tech badges
+       ════════════════════════════════════════════════ -->
+  <text x="560" y="510"
+        font-family="Inter, monospace"
+        font-size="14" font-weight="400"
+        fill="#475569"
+        letter-spacing="1">
+    Next.js · SQLite · Docker · TypeScript · MIT License
+  </text>
+
+  <!-- ════════════════════════════════════════════════
+       OmniRise badge — bottom right corner
+       ════════════════════════════════════════════════ -->
+  <rect x="1100" y="570" width="160" height="36" rx="18"
+        fill="#533fd6" opacity="0.15"/>
+  <text x="1180" y="594"
+        font-family="Inter, sans-serif"
+        font-size="13" font-weight="500"
+        fill="#a78bfa"
+        text-anchor="middle">
+    An OmniRise Project
+  </text>
+</svg>

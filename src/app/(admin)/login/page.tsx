@@ -3,11 +3,11 @@
 import * as React from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useActionState } from "react";
-import { Sparkles } from "lucide-react";
 import { login } from "@/server/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -38,9 +38,7 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="items-center text-center">
-          <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-xl bg-primary/10">
-            <Sparkles className="size-6 text-primary" />
-          </div>
+          <Image src="/logo-mark.svg" alt="LinkBreeze" width={48} height={48} className="mx-auto mb-2" />
           <CardTitle className="text-xl">Welcome back</CardTitle>
           <CardDescription>Sign in to manage your LinkBreeze page</CardDescription>
         </CardHeader>

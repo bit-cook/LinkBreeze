@@ -1,0 +1,75 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!--
+    LinkBreeze Logo — Flow Link Refinement B: "Wind Streams"
+    The link is formed by flowing wind-stream ribbons that curve and interlock.
+    More dynamic, more organic. The streams taper at the ends like real airflow.
+    Uses overlapping translucent layers for depth.
+  -->
+  <defs>
+    <linearGradient id="wind1" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#533fd6"/>
+      <stop offset="50%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#6d28d9"/>
+    </linearGradient>
+    <linearGradient id="wind2" x1="80%" y1="100%" x2="20%" y2="0%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="50%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#c4b5fd"/>
+    </linearGradient>
+    <linearGradient id="windShine" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.25"/>
+      <stop offset="50%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="windGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="4"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="112" fill="#0f0c29"/>
+
+  <!-- Glow halo behind the link -->
+  <ellipse cx="256" cy="256" rx="150" ry="140" fill="#533fd6" opacity="0.08" filter="url(#windGlow)"/>
+
+  <!-- Upper ribbon — flows from top-left, curves right and back -->
+  <path d="M 170 160
+           C 220 125, 290 120, 340 150
+           C 385 180, 400 240, 375 280
+           C 360 300, 335 295, 330 275
+           C 345 255, 350 220, 325 195
+           C 295 165, 245 165, 200 185
+           C 185 170, 175 162, 170 160 Z"
+        fill="url(#wind1)"/>
+
+  <!-- Shine overlay on upper ribbon -->
+  <path d="M 170 160
+           C 220 125, 290 120, 340 150
+           C 385 180, 400 240, 375 280
+           C 360 300, 335 295, 330 275
+           C 345 255, 350 220, 325 195
+           C 295 165, 245 165, 200 185
+           C 185 170, 175 162, 170 160 Z"
+        fill="url(#windShine)"/>
+
+  <!-- Lower ribbon — mirrors upper, flows from bottom-right -->
+  <path d="M 342 352
+           C 292 387, 222 392, 172 362
+           C 127 332, 112 272, 137 232
+           C 152 212, 177 217, 182 237
+           C 167 257, 162 292, 187 317
+           C 217 347, 267 347, 312 327
+           C 327 342, 337 350, 342 352 Z"
+        fill="url(#wind2)"
+        opacity="0.92"/>
+
+  <!-- Three flowing breeze streams through center gap -->
+  <path d="M 190 250 C 230 240, 282 240, 322 250"
+        stroke="#c4b5fd" stroke-width="3" fill="none"
+        stroke-linecap="round" opacity="0.5"/>
+  <path d="M 205 266 C 235 258, 277 258, 307 266"
+        stroke="#ddd6fe" stroke-width="2" fill="none"
+        stroke-linecap="round" opacity="0.35"/>
+  <path d="M 225 282 C 240 276, 272 276, 287 282"
+        stroke="#a78bfa" stroke-width="1.5" fill="none"
+        stroke-linecap="round" opacity="0.25"/>
+</svg>

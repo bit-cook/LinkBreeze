@@ -1,8 +1,6 @@
 <div align="center">
 
-# 🌬️ LinkBreeze
-
-### Self-hosted link-in-bio platform. The Linktree alternative you own.
+<img src="public/banner.png" alt="LinkBreeze" width="100%" />
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](LICENSE)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](Dockerfile)

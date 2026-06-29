@@ -7,8 +7,8 @@ import {
   Palette,
   Settings,
   LogOut,
-  Sparkles,
 } from "lucide-react";
+import Image from "next/image";
 import { getSession } from "@/lib/auth";
 import { logout } from "@/server/actions/auth";
 import { Button } from "@/components/ui/button";
@@ -40,7 +40,7 @@ export default async function AdminLayout({
         {/* Sidebar */}
         <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-sidebar p-4 md:flex">
           <div className="mb-8 flex items-center gap-2 px-2">
-            <Sparkles className="size-5 text-primary" />
+            <Image src="/logo-mark.svg" alt="LinkBreeze" width={24} height={24} />
             <span className="font-heading text-lg font-semibold">
               LinkBreeze
             </span>
@@ -81,7 +81,7 @@ export default async function AdminLayout({
         <div className="flex flex-1 flex-col">
           <header className="flex items-center justify-between border-b border-border px-4 py-3 md:hidden">
             <div className="flex items-center gap-2">
-              <Sparkles className="size-5 text-primary" />
+              <Image src="/logo-mark.svg" alt="LinkBreeze" width={24} height={24} />
               <span className="font-heading font-semibold">LinkBreeze</span>
             </div>
             <form action={logout}>
