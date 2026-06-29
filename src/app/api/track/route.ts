@@ -1,0 +1,61 @@
+import { NextRequest, NextResponse } from "next/server";
+import { headers } from "next/headers";
+import { getVisitorHash, getDeviceType } from "@/lib/visitor";
+import { recordPageview, recordClick } from "@/server/queries";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+export async function POST(request: NextRequest) {
+  let body: { type?: string; linkId?: number; referrer?: string };
+
+  try {
+    body = await request.json();
+  } catch {
+    // Fall back to form-encoded body
+    try {
+      const formData = await request.formData();
+      body = {
+        type: (formData.get("type") as string) || undefined,
+        linkId: formData.get("linkId")
+          ? Number(formData.get("linkId"))
+          : undefined,
+        referrer: (formData.get("referrer") as string) || undefined,
+      };
+    } catch {
+      return NextResponse.json({ ok: false }, { status: 400 });
+    }
+  }
+
+  const type = body.type;
+  if (type !== "view" && type !== "click") {
+    return NextResponse.json({ ok: false, error: "Invalid type" }, { status: 400 });
+  }
+
+  try {
+    const h = await headers();
+    const ip =
+      (h.get("x-forwarded-for")?.split(",")[0] || "").trim() ||
+      (h.get("x-real-ip") || "").toString() ||
+      "0.0.0.0";
+    const userAgent = (h.get("user-agent") || "").toString();
+    const visitorHash = getVisitorHash(ip, userAgent);
+    const deviceType = getDeviceType(userAgent);
+    const referrer =
+      body.referrer || (h.get("referer") || h.get("referrer") || "").toString();
+
+    if (type === "view") {
+      await recordPageview(visitorHash, referrer || null, deviceType, null);
+    } else {
+      if (typeof body.linkId !== "number" || Number.isNaN(body.linkId)) {
+        return NextResponse.json({ ok: false, error: "Missing linkId" }, { status: 400 });
+      }
+      await recordClick(body.linkId, visitorHash, referrer || null);
+    }
+
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    console.error("[track] error", err);
+    return NextResponse.json({ ok: false }, { status: 500 });
+  }
+}
