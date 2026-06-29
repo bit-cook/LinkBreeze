@@ -26,29 +26,37 @@ export function ProfileHeader({ profile, textColor }: ProfileHeaderProps) {
           width={96}
           height={96}
           className="mb-4 h-24 w-24 rounded-full object-cover"
-          style={{ border: "2px solid rgba(255,255,255,0.15)" }}
+          style={{ padding: 3, background: "var(--aurora-grad)", boxShadow: "0 0 32px rgba(124,58,237,0.35)" }}
           loading="eager"
         />
       ) : (
         <div
           className="mb-4 flex h-24 w-24 items-center justify-center rounded-full text-3xl font-semibold"
-          style={{ background: "rgba(255,255,255,0.08)" }}
+          style={{ padding: 3, background: "var(--aurora-grad)", boxShadow: "0 0 32px rgba(124,58,237,0.35)" }}
         >
-          {displayName.charAt(0).toUpperCase()}
+          <span
+            className="flex h-full w-full items-center justify-center rounded-full"
+            style={{ background: "rgba(10,8,32,0.9)", color: textColor }}
+          >
+            {displayName.charAt(0).toUpperCase()}
+          </span>
         </div>
       )}
 
       {badge ? (
         <span
-          className="mb-2 inline-block rounded-full px-3 py-0.5 text-xs font-medium"
-          style={{ background: "rgba(255,255,255,0.12)", color: textColor }}
+          className="glass mb-2 inline-block rounded-full px-3 py-0.5 text-xs font-medium"
+          style={{ color: textColor }}
         >
           {badge}
         </span>
       ) : null}
 
       {displayName ? (
-        <h1 className="text-2xl font-bold tracking-tight" style={{ color: textColor }}>
+        <h1
+          className="aurora-rise text-3xl font-bold tracking-tight sm:text-4xl"
+          style={{ color: textColor, fontFamily: "var(--font-clash), var(--font-sans), sans-serif" }}
+        >
           {displayName}
         </h1>
       ) : null}

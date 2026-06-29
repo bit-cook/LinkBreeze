@@ -114,7 +114,7 @@ function SortableLink({ link, onEdit, onDelete }: SortableLinkProps) {
             <div className="flex items-center gap-2">
               <span className="truncate text-sm font-medium">{link.title}</span>
               {link.isHighlighted ? (
-                <Badge variant="default" className="shrink-0">
+                <Badge className="shrink-0 border-transparent bg-[var(--aurora-grad)] text-white">
                   Star
                 </Badge>
               ) : null}

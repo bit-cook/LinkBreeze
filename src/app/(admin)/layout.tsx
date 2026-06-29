@@ -12,6 +12,8 @@ import Image from "next/image";
 import { getSession } from "@/lib/auth";
 import { logout } from "@/server/actions/auth";
 import { Button } from "@/components/ui/button";
+import { AuroraBackground } from "@/components/aurora/AuroraBackground";
+import { MobileTabBar } from "@/components/admin/MobileTabBar";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -31,11 +33,17 @@ export default async function AdminLayout({
   // Route protection is handled by middleware. Here we only decide whether to
   // render the admin chrome (authed) or a bare shell (login / setup).
   if (!session) {
-    return <div className="min-h-screen w-full dark">{children}</div>;
+    return (
+      <div className="min-h-screen w-full dark">
+        <AuroraBackground />
+        {children}
+      </div>
+    );
   }
 
   return (
-    <div className="dark min-h-screen bg-background text-foreground">
+    <div className="dark relative min-h-screen bg-background text-foreground">
+      <AuroraBackground />
       <div className="mx-auto flex min-h-screen w-full max-w-7xl">
         {/* Sidebar */}
         <aside className="hidden w-60 shrink-0 flex-col border-r border-border bg-sidebar p-4 md:flex">
@@ -51,7 +59,7 @@ export default async function AdminLayout({
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                className="flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm text-muted-foreground transition-all hover:translate-x-0.5 hover:bg-violet/15 hover:text-lavender"
               >
                 <item.icon className="size-4" />
                 {item.label}
@@ -91,21 +99,8 @@ export default async function AdminLayout({
             </form>
           </header>
 
-          {/* Mobile nav */}
-          <nav className="flex gap-1 overflow-x-auto border-b border-border px-2 py-2 md:hidden">
-            {NAV.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className="flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs text-muted-foreground hover:bg-muted hover:text-foreground"
-              >
-                <item.icon className="size-3.5" />
-                {item.label}
-              </Link>
-            ))}
-          </nav>
-
           <main className="flex-1 overflow-y-auto p-4 md:p-8">{children}</main>
+          <MobileTabBar />
         </div>
       </div>
     </div>

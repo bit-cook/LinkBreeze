@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
   const targetUrl = `${getOrigin(request)}/${slug}`;
 
-  const downloadHeaders = download
+  const downloadHeaders: Record<string, string> = download
     ? { "Content-Disposition": `attachment; filename="linkbreeze-${slug}.svg"` }
     : {};
 

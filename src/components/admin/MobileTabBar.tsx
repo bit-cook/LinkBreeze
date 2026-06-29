@@ -1,0 +1,56 @@
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  Link as LinkIcon,
+  User,
+  Palette,
+  Settings,
+  type LucideIcon,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+
+const TABS: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: "/dashboard", label: "Home", icon: LayoutDashboard },
+  { href: "/links", label: "Links", icon: LinkIcon },
+  { href: "/profile", label: "Profile", icon: User },
+  { href: "/theme", label: "Theme", icon: Palette },
+  { href: "/settings", label: "Settings", icon: Settings },
+];
+
+/** Fixed glass bottom tab bar (mobile only). Thumb-reachable, always visible. */
+export function MobileTabBar() {
+  const pathname = usePathname();
+
+  return (
+    <nav
+      aria-label="Primary"
+      className="glass fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-lavender/12 px-1 pb-[env(safe-area-inset-bottom)] md:hidden"
+      style={{ background: "rgba(10, 8, 32, 0.82)" }}
+    >
+      {TABS.map(({ href, label, icon: Icon }) => {
+        const active = pathname === href || pathname.startsWith(href + "/");
+        return (
+          <Link
+            key={href}
+            href={href}
+            aria-current={active ? "page" : undefined}
+            className={cn(
+              "relative flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-medium transition-colors",
+              active ? "text-lavender" : "text-muted-foreground hover:text-foreground",
+            )}
+          >
+            {active ? (
+              <span className="absolute top-0 h-0.5 w-8 rounded-full bg-[var(--aurora-grad)]" />
+            ) : null}
+            <Icon className="size-5" />
+            <span>{label}</span>
+          </Link>
+        );
+      })}
+    </nav>
+  );
+}

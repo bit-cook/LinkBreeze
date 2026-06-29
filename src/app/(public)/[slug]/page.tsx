@@ -14,6 +14,8 @@ import { getVisitorHash, getDeviceType } from "@/lib/visitor";
 import { ProfileHeader } from "@/components/public/ProfileHeader";
 import { LinkCard } from "@/components/public/LinkCard";
 import { SocialIcons } from "@/components/public/SocialIcons";
+import { AuroraBackground } from "@/components/aurora/AuroraBackground";
+import { resolveBackground, isAnimatedAurora } from "@/lib/theme-background";
 
 export const revalidate = 60;
 
@@ -100,23 +102,10 @@ export default async function PublicPage({ params }: PageProps) {
     socialLinks = [];
   }
 
-  const textColor = theme?.textColor || "#eaeaea";
-  const primaryColor = theme?.primaryColor || "#0f3460";
-
-  // Build the background CSS based on theme.
-  const bgParts = (theme?.backgroundValue || "#1a1a2e,#16213e").split(",");
-  let background: string;
-  if (theme?.backgroundType === "solid") {
-    background = bgParts[0];
-  } else if (theme?.backgroundType === "pattern") {
-    background = `${bgParts[0]}`;
-  } else {
-    // gradient (default)
-    background =
-      bgParts.length > 1
-        ? `linear-gradient(160deg, ${bgParts.join(", ")})`
-        : bgParts[0];
-  }
+  const textColor = theme?.textColor || "#eceafe";
+  const primaryColor = theme?.primaryColor || "#533fd6";
+  const useAurora = isAnimatedAurora(theme ?? {});
+  const background = resolveBackground(theme ?? {});
 
   const fontFamily = theme?.fontFamily || "Inter, system-ui, sans-serif";
 
@@ -140,16 +129,16 @@ export default async function PublicPage({ params }: PageProps) {
   };
 
   return (
-    <main
-      style={{
-        background,
-        color: textColor,
-        fontFamily,
-        minHeight: "100vh",
-        boxSizing: "border-box",
-      }}
-      className="flex flex-col items-center w-full"
-    >
+    <>
+      {useAurora ? <AuroraBackground /> : null}
+      <main
+        style={
+          useAurora
+            ? { color: textColor, fontFamily, minHeight: "100vh", boxSizing: "border-box" }
+            : { background, color: textColor, fontFamily, minHeight: "100vh", boxSizing: "border-box" }
+        }
+        className="relative flex flex-col items-center w-full"
+      >
       <div className="w-full max-w-xl px-5 py-12 sm:py-16">
         <ProfileHeader profile={profile} textColor={textColor} />
 
@@ -161,11 +150,12 @@ export default async function PublicPage({ params }: PageProps) {
 
         <div className="mt-6">
           {activeLinks.length > 0 ? (
-            activeLinks.map((link) => (
+            activeLinks.map((link, i) => (
               <LinkCard
                 key={link.id}
                 link={link}
                 profile={profile}
+                index={i}
                 theme={{
                   textColor,
                   primaryColor,
@@ -199,5 +189,6 @@ export default async function PublicPage({ params }: PageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
     </main>
+    </>
   );
 }

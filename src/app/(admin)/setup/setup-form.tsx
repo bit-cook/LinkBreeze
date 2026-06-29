@@ -31,6 +31,23 @@ export function SetupForm({ defaultUsername }: { defaultUsername: string }) {
   );
 
   return (
+    <div className="flex min-h-screen w-full items-center justify-center px-5 py-10">
+      <div className="w-full max-w-md aurora-rise">
+        <header className="mb-8 flex flex-col items-center text-center">
+          <img
+            src="/logo-mark.svg"
+            alt=""
+            aria-hidden
+            className="mb-5 size-14"
+            style={{ filter: "drop-shadow(0 0 24px rgba(124,58,237,0.45))" }}
+          />
+          <h1 className="font-heading text-3xl font-semibold tracking-tight text-foreground">
+            Welcome to LinkBreeze
+          </h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Create your admin account to get started.
+          </p>
+        </header>
     <Card>
       <CardHeader>
         <CardTitle className="text-base">Admin credentials</CardTitle>
@@ -72,6 +89,8 @@ export function SetupForm({ defaultUsername }: { defaultUsername: string }) {
           </Button>
         </CardFooter>
       </form>
-    </Card>
+        </Card>
+      </div>
+    </div>
   );
 }

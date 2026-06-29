@@ -78,7 +78,7 @@ export function ThemeManager({ themes, activeId, active }: ThemeManagerProps) {
             <button
               key={theme.id}
               onClick={() => handleSelect(theme.id)}
-              className="group relative overflow-hidden rounded-xl border border-border text-left transition-all hover:ring-2 hover:ring-ring/50 data-[active=true]:ring-2 data-[active=true]:ring-primary"
+              className="group relative overflow-hidden rounded-xl border border-border text-left backdrop-blur-xl transition-all hover:ring-2 hover:ring-ring/50 data-[active=true]:ring-2 data-[active=true]:ring-primary"
               data-active={isActive}
               type="button"
             >
@@ -98,7 +98,7 @@ export function ThemeManager({ themes, activeId, active }: ThemeManagerProps) {
                   <span>{theme.linkStyle} · {theme.animationType}</span>
                 </div>
                 {isActive ? (
-                  <Badge variant="default">
+                  <Badge className="border-transparent bg-[var(--aurora-grad)] text-white">
                     <Check className="size-3" /> Active
                   </Badge>
                 ) : selecting === theme.id ? (

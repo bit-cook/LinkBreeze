@@ -36,9 +36,9 @@ export function SocialIcons({ socialLinks, textColor }: SocialIconsProps) {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="${label}"
-          style="display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:9999px;background:rgba(255,255,255,0.07);color:${textColor};border:1px solid rgba(255,255,255,0.1);transition:transform .15s ease,background .15s ease"
-          onmouseover="this.style.transform='translateY(-2px)';this.style.background='rgba(255,255,255,0.14)'"
-          onmouseout="this.style.transform='none';this.style.background='rgba(255,255,255,0.07)'"
+          style="display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:9999px;background:rgba(255,255,255,0.06);color:${textColor};border:1px solid rgba(167,139,250,0.16);transition:transform .15s ease,background .15s ease,border-color .15s ease;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)"
+          onmouseover="this.style.transform='translateY(-2px)';this.style.background='rgba(167,139,250,0.16)';this.style.borderColor='rgba(167,139,250,0.4)'"
+          onmouseout="this.style.transform='none';this.style.background='rgba(255,255,255,0.06)';this.style.borderColor='rgba(167,139,250,0.16)'"
         >${svg}</a>`;
 
         return (

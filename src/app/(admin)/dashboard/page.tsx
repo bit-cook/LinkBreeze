@@ -64,7 +64,9 @@ export default async function DashboardPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardDescription>{c.label}</CardDescription>
-                <c.icon className="size-4 text-muted-foreground" />
+                <span className="flex size-8 items-center justify-center rounded-lg bg-violet/15 text-lavender">
+                  <c.icon className="size-4" />
+                </span>
               </div>
               <CardTitle className="text-3xl">{c.value}</CardTitle>
             </CardHeader>
@@ -114,7 +116,7 @@ export default async function DashboardPage() {
                       </div>
                       <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                         <div
-                          className="h-full rounded-full bg-primary transition-all"
+                          className="h-full rounded-full bg-[var(--aurora-grad)] transition-all"
                           style={{ width: `${pct}%` }}
                         />
                       </div>

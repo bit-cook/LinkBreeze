@@ -44,8 +44,8 @@ export function ViewsChart({ data }: ChartProps) {
               <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
             </linearGradient>
             <linearGradient id="clicksGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="oklch(0.7 0.15 250)" stopOpacity={0.35} />
-              <stop offset="95%" stopColor="oklch(0.7 0.15 250)" stopOpacity={0} />
+              <stop offset="5%" stopColor="var(--chart-4)" stopOpacity={0.35} />
+              <stop offset="95%" stopColor="var(--chart-4)" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
@@ -64,11 +64,12 @@ export function ViewsChart({ data }: ChartProps) {
           />
           <Tooltip
             contentStyle={{
-              background: "var(--popover)",
+              background: "rgba(27, 23, 56, 0.85)",
               border: "1px solid var(--border)",
-              borderRadius: 8,
+              borderRadius: 12,
               fontSize: 12,
               color: "var(--popover-foreground)",
+              backdropFilter: "blur(12px)",
             }}
             labelStyle={{ color: "var(--muted-foreground)" }}
           />
@@ -83,7 +84,7 @@ export function ViewsChart({ data }: ChartProps) {
           <Area
             type="monotone"
             dataKey="clicks"
-            stroke="oklch(0.7 0.15 250)"
+            stroke="var(--chart-4)"
             strokeWidth={2}
             fill="url(#clicksGrad)"
             name="Clicks"
