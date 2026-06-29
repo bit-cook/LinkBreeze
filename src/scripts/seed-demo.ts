@@ -85,11 +85,11 @@ async function seed() {
 
   // ─── Themes ────────────────────────────────────
   const themes = [
-    { name: "Midnight", backgroundType: "aurora", backgroundValue: "#0f0c29,#1a1a2e,#16213e", fontFamily: "Inter", primaryColor: "#a78bfa", textColor: "#eaeaea", linkStyle: "glass", animationType: "lift", isActive: 1 },
-    { name: "Sunset", backgroundType: "gradient", backgroundValue: "#ff6a00,#ee0979", fontFamily: "Inter", primaryColor: "#ffffff", textColor: "#fff7f0", linkStyle: "rounded", animationType: "scale", isActive: 0 },
-    { name: "Ocean", backgroundType: "gradient", backgroundValue: "#2193b0,#6dd5ed", fontFamily: "Inter", primaryColor: "#003344", textColor: "#f0fbff", linkStyle: "glass", animationType: "lift", isActive: 0 },
-    { name: "Mono", backgroundType: "solid", backgroundValue: "#0a0a0a", fontFamily: "Inter", primaryColor: "#ffffff", textColor: "#fafafa", linkStyle: "rounded", animationType: "none", isActive: 0 },
-    { name: "Forest", backgroundType: "gradient", backgroundValue: "#134e5e,#71b280", fontFamily: "Inter", primaryColor: "#0c2b33", textColor: "#f1fff4", linkStyle: "glass", animationType: "lift", isActive: 0 },
+    { name: "Midnight", backgroundType: "aurora", backgroundValue: "#0f0c29,#1a1a2e,#16213e", fontFamily: "Inter", primaryColor: "#a78bfa", textColor: "#eaeaea", linkStyle: "glass", animationType: "lift", isActive: true },
+    { name: "Sunset", backgroundType: "gradient", backgroundValue: "#ff6a00,#ee0979", fontFamily: "Inter", primaryColor: "#ffffff", textColor: "#fff7f0", linkStyle: "rounded", animationType: "scale", isActive: false },
+    { name: "Ocean", backgroundType: "gradient", backgroundValue: "#2193b0,#6dd5ed", fontFamily: "Inter", primaryColor: "#003344", textColor: "#f0fbff", linkStyle: "glass", animationType: "lift", isActive: false },
+    { name: "Mono", backgroundType: "solid", backgroundValue: "#0a0a0a", fontFamily: "Inter", primaryColor: "#ffffff", textColor: "#fafafa", linkStyle: "rounded", animationType: "none", isActive: false },
+    { name: "Forest", backgroundType: "gradient", backgroundValue: "#134e5e,#71b280", fontFamily: "Inter", primaryColor: "#0c2b33", textColor: "#f1fff4", linkStyle: "glass", animationType: "lift", isActive: false },
   ];
   for (const theme of themes) {
     db.insert(schema.themes).values(theme).run();
