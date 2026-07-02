@@ -7,6 +7,7 @@ import {
   SESSION_MAX_AGE,
   type SessionPayload,
 } from "@/lib/session-token";
+import { getSetting } from "@/server/queries";
 
 const SESSION_COOKIE = "lb_session";
 
@@ -14,23 +15,38 @@ export type { SessionPayload };
 
 /**
  * Read and verify the session cookie. Returns the session payload or null.
+ * Checks the password version against the DB — if the password was changed
+ * since this token was issued, the token is treated as invalid.
  */
 export async function getSession(): Promise<SessionPayload | null> {
   const store = await cookies();
   const token = store.get(SESSION_COOKIE)?.value;
   if (!token) return null;
-  return verifyToken(token);
+  const payload = verifyToken(token);
+  if (!payload) return null;
+
+  // Verify password version — invalidates sessions after password change
+  const currentVersion = Number(await getSetting("sessionVersion")) || 0;
+  if (payload.pv !== currentVersion) {
+    // Session is stale — destroy it
+    await destroySession();
+    return null;
+  }
+
+  return payload;
 }
 
 /**
  * Set a signed, httpOnly session cookie.
  */
 export async function createSession(userId: number, username: string): Promise<void> {
+  const pv = Number(await getSetting("sessionVersion")) || 0;
   const store = await cookies();
   const payload: SessionPayload = {
     userId,
     username,
     exp: Date.now() + SESSION_MAX_AGE * 1000,
+    pv,
   };
   const token = createToken(payload);
   store.set(SESSION_COOKIE, token, {

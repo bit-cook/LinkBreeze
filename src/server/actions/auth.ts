@@ -16,6 +16,7 @@ import {
   getUserByUsername,
   getUserCount,
   createUser,
+  getSetting,
 } from "@/server/queries";
 
 const loginSchema = z.object({
@@ -134,6 +135,14 @@ export async function changePassword(formData: FormData): Promise<ActionResult> 
 
   const newHash = await hashPassword(parsed.data.newPassword);
   await updateUserPassword(user.id, newHash);
+
+  // Bump session version to invalidate any other sessions (e.g. stolen cookies)
+  const { updateSetting } = await import("@/server/queries");
+  const currentVersion = Number(await getSetting("sessionVersion")) || 0;
+  await updateSetting("sessionVersion", String(currentVersion + 1));
+
+  // Re-issue the current session with the new version
+  await createSession(user.id, user.username);
   return { success: true };
 }
 

@@ -12,6 +12,8 @@ export interface SessionPayload {
   userId: number;
   username: string;
   exp: number;
+  /** Password version — bumped on password change to invalidate old sessions */
+  pv: number;
 }
 
 function getSecret(): string {
@@ -64,6 +66,9 @@ export function verifyToken(token: string): SessionPayload | null {
     if (typeof payload.exp !== "number" || Date.now() > payload.exp) {
       return null;
     }
+    // Tokens minted before the pv field existed (pv=undefined) are treated as
+    // version 0 — they will be re-issued with a proper pv on next login.
+    if (payload.pv === undefined) payload.pv = 0;
     return payload;
   } catch {
     return null;

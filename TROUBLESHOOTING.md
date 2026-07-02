@@ -125,3 +125,52 @@ The public page is cached. If you changed something in the admin panel and it
 isn't reflected on the public page, hard-refresh: `Ctrl+Shift+R` (or
 `Cmd+Shift+R` on Mac). In Docker, ensure the container was restarted after any
 environment variable changes.
+
+---
+
+## Upgrading LinkBreeze
+
+### Docker
+
+```bash
+docker compose pull && docker compose up -d
+```
+
+That's it. New versions pull automatically.
+
+### What happens to my data on upgrade?
+
+**Nothing destructive.** LinkBreeze uses Drizzle ORM migrations that run
+**automatically on container startup**. When you pull a new image and restart:
+
+1. The app checks for pending schema migrations
+2. Applies them forward-only (no destructive operations without backup)
+3. Your links, settings, analytics, and themes are preserved
+
+You never need to run `drizzle-kit migrate` manually in Docker — it's handled
+for you. If a migration ever fails, the old database is left untouched and the
+container logs will show the error.
+
+### Running without Docker
+
+```bash
+git pull
+npm install
+npx drizzle-kit migrate   # apply any new migrations
+npm run build && npm start
+```
+
+---
+
+## How slugs work
+
+Your public page lives at `/<slug>`. The default slug is `u`.
+
+- **Changing the slug**: Go to Settings → Page URL. The slug must be
+  alphanumeric with hyphens/underscores, max 64 characters.
+- **After changing**: The old slug immediately returns a 404. There are **no
+  redirects** — update any links or QR codes pointing to the old URL.
+- **Reserved words**: `/login`, `/setup`, `/dashboard`, `/links`, `/profile`,
+  `/settings`, `/theme` are admin-reserved and cannot be used as slugs.
+- **QR codes**: QR codes are generated for the current slug. If you change your
+  slug, download a new QR code from the admin panel.

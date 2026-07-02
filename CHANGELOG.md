@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.1] - Unreleased
 
+### Security
+
+- **Session invalidation on password change** — Changing your password now invalidates all existing sessions (stolen or old cookies become instantly invalid). Implemented via a `sessionVersion` counter in the settings table: tokens include the version at issue time, `getSession()` rejects mismatches.
+- **QR download endpoint rate limiting** — The `/api/qr` endpoint is now rate-limited to 30 requests/min per IP. Prevents CPU abuse from repeated QR generation.
+- **CSRF protection documented** — SECURITY.md now documents that Next.js 16 Server Actions verify `Origin`/`Host` headers on every non-GET submission (built-in framework protection, no manual token needed).
+- **SECURITY.md vulnerability reporting** — Added response timeline (48h ack, 7-day status, 30/90-day patch targets) and safe harbor clause for security researchers.
+
+### Added
+
+- **robots.txt** — Dynamic route that blocks admin and API routes, allows the public slug page.
+- **sitemap.xml** — Dynamic route that reads the public slug from the database and derives the origin from request headers.
+- **LICENSE** — MIT license file (was referenced in README but missing from repo).
+- **TROUBLESHOOTING.md** — Dedicated troubleshooting guide: Docker Desktop issues, PowerShell syntax errors, password recovery (3 methods), port conflicts, database corruption, analytics tracking, cache issues.
+- **Upgrade guide** — TROUBLESHOOTING.md now documents the upgrade process (Docker pull + auto-migrations, non-Docker steps).
+- **Slug management docs** — TROUBLESHOOTING.md now explains how slug changes work (no redirects, reserved words, QR code behavior).
+- **Accessibility docs** — SECURITY.md now documents the accessibility posture (Radix/shadcn WAI-ARIA, keyboard nav, WCAG AA contrast, screen-reader support).
+- **GitHub Discussions** — Enabled on the repository.
+
 ### Fixed
 
 - **Middleware session validation** — Middleware now verifies the HMAC signature and expiry of the `lb_session` cookie instead of only checking for its existence. Forged or expired cookies are redirected to `/login`. Token logic extracted into `src/lib/session-token.ts` (shared between `proxy.ts` and `auth.ts`).
@@ -16,14 +34,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **CONTRIBUTING.md** — Removed references to non-existent `public/themes/` directory (themes are DB-stored, managed via admin panel). Added test step to PR checklist.
 - **package.json** — Version aligned with release: `0.1.0` → `1.0.0`.
 - **Theme submission template** — Updated to reflect actual admin-panel-based theme workflow.
-
-### Added
-
-- **robots.txt** — Dynamic route (`src/app/robots.ts`) that blocks admin and API routes, allows the public slug page.
-- **sitemap.xml** — Dynamic route (`src/app/sitemap.ts`) that reads the public slug from the database and derives the origin from request headers.
-- **LICENSE** — MIT license file (was referenced in README but missing from repo).
-- **TROUBLESHOOTING.md** — Dedicated troubleshooting guide: Docker Desktop issues, PowerShell syntax errors, password recovery (3 methods), port conflicts, database corruption, analytics tracking, cache issues.
-- **GitHub Discussions** — Enabled on the repository.
 
 ### Changed
 

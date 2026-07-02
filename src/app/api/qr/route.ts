@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateQrSvg, generateQrPng } from "@/lib/qr";
 import { getSetting } from "@/server/queries";
+import { rateLimit } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,6 +13,16 @@ function getOrigin(request: NextRequest): string {
 }
 
 export async function GET(request: NextRequest) {
+  // Rate limit: 30 QR generations per minute per IP
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const rl = rateLimit(`qr:${ip}`, 30, 60_000);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } },
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const slugParam = searchParams.get("slug");
   const format = (searchParams.get("format") || "svg").toLowerCase();
