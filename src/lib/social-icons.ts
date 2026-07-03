@@ -58,18 +58,23 @@ interface Rule {
   test: (host: string, value: string) => boolean;
 }
 
+/** Check if a hostname exactly matches or is a subdomain of the given domain. */
+function isHost(host: string, domain: string): boolean {
+  return host === domain || host.endsWith("." + domain);
+}
+
 const RULES: Rule[] = [
-  { platform: "instagram", test: (h) => h.includes("instagram.com") },
-  { platform: "tiktok", test: (h) => h.includes("tiktok.com") },
-  { platform: "youtube", test: (h) => h.includes("youtube.com") || h.includes("youtu.be") },
-  { platform: "twitter", test: (h) => h.includes("twitter.com") || h.includes("x.com") },
-  { platform: "github", test: (h) => h.includes("github.com") },
-  { platform: "discord", test: (h, v) => h.includes("discord.gg") || h.includes("discord.com") || v.startsWith("discord:") },
-  { platform: "twitch", test: (h) => h.includes("twitch.tv") },
-  { platform: "spotify", test: (h) => h.includes("spotify.com") },
-  { platform: "linkedin", test: (h) => h.includes("linkedin.com") },
-  { platform: "telegram", test: (h, v) => h.includes("t.me") || v.startsWith("telegram:") || v.startsWith("tg:") },
-  { platform: "whatsapp", test: (h, v) => h.includes("wa.me") || h.includes("whatsapp.com") || v.startsWith("whatsapp:") || v.startsWith("https://wa.me") },
+  { platform: "instagram", test: (h) => isHost(h, "instagram.com") },
+  { platform: "tiktok", test: (h) => isHost(h, "tiktok.com") },
+  { platform: "youtube", test: (h) => isHost(h, "youtube.com") || isHost(h, "youtu.be") },
+  { platform: "twitter", test: (h) => isHost(h, "twitter.com") || isHost(h, "x.com") },
+  { platform: "github", test: (h) => isHost(h, "github.com") },
+  { platform: "discord", test: (h, v) => isHost(h, "discord.gg") || isHost(h, "discord.com") || v.startsWith("discord:") },
+  { platform: "twitch", test: (h) => isHost(h, "twitch.tv") },
+  { platform: "spotify", test: (h) => isHost(h, "spotify.com") },
+  { platform: "linkedin", test: (h) => isHost(h, "linkedin.com") },
+  { platform: "telegram", test: (h, v) => h === "t.me" || h.endsWith(".t.me") || v.startsWith("telegram:") || v.startsWith("tg:") },
+  { platform: "whatsapp", test: (h, v) => h === "wa.me" || isHost(h, "whatsapp.com") || v.startsWith("whatsapp:") || v.startsWith("https://wa.me") },
   { platform: "email", test: (_h, v) => v.startsWith("mailto:") },
 ];
 
