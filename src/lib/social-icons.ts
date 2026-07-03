@@ -74,7 +74,7 @@ const RULES: Rule[] = [
   { platform: "spotify", test: (h) => isHost(h, "spotify.com") },
   { platform: "linkedin", test: (h) => isHost(h, "linkedin.com") },
   { platform: "telegram", test: (h, v) => h === "t.me" || h.endsWith(".t.me") || v.startsWith("telegram:") || v.startsWith("tg:") },
-  { platform: "whatsapp", test: (h, v) => h === "wa.me" || isHost(h, "whatsapp.com") || v.startsWith("whatsapp:") || v.startsWith("https://wa.me") },
+  { platform: "whatsapp", test: (h, v) => h === "wa.me" || isHost(h, "whatsapp.com") || v.startsWith("whatsapp:") },
   { platform: "email", test: (_h, v) => v.startsWith("mailto:") },
 ];
 
