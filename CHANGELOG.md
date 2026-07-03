@@ -5,7 +5,7 @@ All notable changes to LinkBreeze will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.1] - Unreleased
+## [1.0.1] - 2026-07-03
 
 ### Security
 
@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Social icon URL detection hardened** — Platform detection in `social-icons.ts` now uses proper hostname matching (`isHost()`) instead of `.includes()`. Prevents `evil.com/github.com` from matching as GitHub. Resolves 11 CodeQL alerts.
 - **CI workflow permissions** — Added explicit `permissions: contents: read` to CI workflow. Follows least-privilege principle. Resolves 1 CodeQL alert.
 - **Link URL scheme validation** — Link URLs are now validated by type: only `http:`/`https:` for regular links, `mailto:` for email, `tel:` for phone, `wa.me` for WhatsApp, etc. Blocks `javascript:` and `data:` URI XSS. (Contributed by @MFA-G, PR #29, closes #14)
+- **Backup version validation** — Restoring a backup from an incompatible future version is now rejected before any database transaction runs. (Contributed by @vku2018, PR #30, closes #16)
 
 ### Added
 
