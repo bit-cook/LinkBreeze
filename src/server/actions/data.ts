@@ -49,7 +49,6 @@ const linkRowSchema = z.object({
   scheduleStart: z.string().nullable().optional(),
   scheduleEnd: z.string().nullable().optional(),
   clicksCount: z.number().optional(),
-  metadata: z.string().optional(),
   createdAt: z.string().optional(),
 });
 

@@ -23,6 +23,12 @@
 
 **[🔗 Live Demo](https://linkbreeze-demo.omnirise.dev/alex)** — see it in action (read-only).
 
+<div align="center">
+
+<video src="public/linkbreeze-vid.mp4" controls muted width="100%"></video>
+
+</div>
+
 ## ✨ Features
 
 - **🔗 Link Management** — Add, reorder, and customize unlimited links with drag-and-drop

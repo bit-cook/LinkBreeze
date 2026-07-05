@@ -416,15 +416,19 @@ export async function recordClick(
   visitorHash: string,
   referrer: string | null,
 ): Promise<void> {
-  await db.insert(analyticsClicks).values({
-    linkId,
-    visitorHash,
-    referrer: referrer ?? null,
+  // Wrap in a transaction so the analytics insert and the denormalized
+  // clicksCount increment can't drift apart if one fails.
+  db.transaction((tx) => {
+    tx.insert(analyticsClicks).values({
+      linkId,
+      visitorHash,
+      referrer: referrer ?? null,
+    }).run();
+    tx.update(links)
+      .set({ clicksCount: sql`${links.clicksCount} + 1` })
+      .where(eq(links.id, linkId))
+      .run();
   });
-  await db
-    .update(links)
-    .set({ clicksCount: sql`${links.clicksCount} + 1` })
-    .where(eq(links.id, linkId));
 }
 
 // AnalyticsRange is re-exported from the shared analytics-range module so there

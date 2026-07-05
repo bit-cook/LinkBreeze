@@ -39,7 +39,6 @@ export const links = sqliteTable("links", {
   scheduleStart: text("schedule_start"),
   scheduleEnd: text("schedule_end"),
   clicksCount: integer("clicks_count").notNull().default(0),
-  metadata: text("metadata").notNull().default("{}"), // JSON, for future features
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
 });
 
