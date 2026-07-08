@@ -183,7 +183,7 @@ export function SettingsForm({
             {emailCapture && subscriberCount > 0 ? (
               <p className="text-xs text-muted-foreground">
                 {subscriberCount} subscriber{subscriberCount !== 1 ? "s" : ""} ·{" "}
-                <a href="/api/subscribers/export" className="underline">
+                <a href="/api/subscribers/export" className="underline" download>
                   Export CSV
                 </a>
               </p>

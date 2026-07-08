@@ -118,7 +118,7 @@ export const analyticsClicks = sqliteTable("analytics_clicks", {
 // ─── Subscribers (email capture) ──────────────────────
 export const subscribers = sqliteTable("subscribers", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  email: text("email").notNull(),
+  email: text("email").notNull().unique(),
   createdAt: text("created_at").notNull().default(sql`(datetime('now'))`),
 });
 

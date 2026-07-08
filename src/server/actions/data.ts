@@ -14,6 +14,7 @@ import {
 } from "@/db/schema";
 import { getSession } from "@/lib/auth";
 import { demoBlock } from "@/lib/demo";
+import { isAllowedLinkUrl } from "@/lib/link-url";
 import {
   updateSetting,
   type ProfileRow,
@@ -228,6 +229,13 @@ export async function restoreBackup(formData: FormData): Promise<ActionResult> {
   parsed.links = validatedLinks.data as LinkRow[];
   parsed.settings = validatedSettings.data as Array<{ key: string; value: string }>;
   parsed.themes = validatedThemes.data as ThemeRow[];
+
+  // Re-validate link URLs against the scheme allowlist. A backup file could
+  // carry javascript: or data: URLs that bypass the create/update validators
+  // — these would be stored XSS on the public page. Drop offending rows.
+  parsed.links = parsed.links.filter(
+    (link) => link.type && link.url && isAllowedLinkUrl(link.type, link.url),
+  );
 
   try {
     db.transaction((tx) => {

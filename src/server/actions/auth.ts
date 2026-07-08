@@ -50,6 +50,15 @@ export async function login(formData: FormData): Promise<ActionResult> {
     return { success: false, error: `Too many login attempts. Try again in ${retryAfter}s.` };
   }
 
+  // Global login throttle (15/min regardless of IP) — closes the XFF-spoofing
+  // bypass where an attacker rotates X-Forwarded-For to reset the per-IP bucket.
+  // LinkBreeze is single-admin, so 15/min is generous for a real human.
+  const globalRl = rateLimit("login:global", 15, 60_000);
+  if (!globalRl.ok) {
+    const retryAfter = Math.ceil((globalRl.resetAt - Date.now()) / 1000);
+    return { success: false, error: `Too many login attempts. Try again in ${retryAfter}s.` };
+  }
+
   const parsed = loginSchema.safeParse({
     username: formData.get("username"),
     password: formData.get("password"),

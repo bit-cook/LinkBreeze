@@ -30,6 +30,8 @@ export const revalidate = 60;
 
 /** Build the public origin for absolute URLs in metadata. */
 async function getOrigin(): Promise<string> {
+  // If BASE_URL is set, always use it — prevents host-header injection.
+  if (process.env.BASE_URL) return process.env.BASE_URL.replace(/\/$/, "");
   const h = await headers();
   const host =
     (h.get("x-forwarded-host") || h.get("host") || "localhost").toString();

@@ -7,10 +7,9 @@ function getSecret(): string {
   const key = process.env.SECRET_KEY;
   if (!key) {
     if (process.env.NODE_ENV === "production") {
-      console.warn(
-        "\x1b[33m%s\x1b[0m",
-        "[LinkBreeze] WARNING: SECRET_KEY is not set. " +
-          "Visitor hashes are predictable. " +
+      throw new Error(
+        "[LinkBreeze] FATAL: SECRET_KEY is not set. " +
+          "Visitor hashes would be predictable. " +
           "Set SECRET_KEY to a random string (e.g. `openssl rand -hex 32`).",
       );
     }

@@ -55,7 +55,6 @@ export async function GET() {
         }}
       >
         {avatarSrc ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={avatarSrc}
             width={140}

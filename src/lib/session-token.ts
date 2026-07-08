@@ -22,10 +22,9 @@ function getSecret(): string {
   const key = process.env.SECRET_KEY;
   if (!key) {
     if (process.env.NODE_ENV === "production") {
-      console.warn(
-        "\x1b[33m%s\x1b[0m",
-        "[LinkBreeze] WARNING: SECRET_KEY is not set. " +
-          "Session tokens are forgeable by anyone with the source code. " +
+      throw new Error(
+        "[LinkBreeze] FATAL: SECRET_KEY is not set. " +
+          "Session tokens would be forgeable by anyone with the source code. " +
           "Set SECRET_KEY to a random string (e.g. `openssl rand -hex 32`).",
       );
     }

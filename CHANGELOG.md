@@ -5,6 +5,27 @@ All notable changes to LinkBreeze will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.2] - Unreleased
+
+### Fixed
+
+- **Floating promise in subscriber clear** — `clearAllSubscribers()` called the async `clearSubscribers()` without `await`, returning success before the DB delete completed and silently swallowing errors. The delete is now awaited.
+- **CSV export link lint error** — The subscriber export `<a>` tag was flagged by `@next/next/no-html-link-for-pages`. Added the `download` attribute (semantically correct for file downloads — the linter recognizes `download` as an explicit non-navigation marker).
+- **Unused eslint-disable in OG image route** — Removed a stale `// eslint-disable-next-line @next/next/no-img-element` directive that was no longer needed (the rule doesn't trigger inside `ImageResponse`).
+- **Missing lint step in CI** — The CI pipeline ran `tsc`, tests, and build but never `npm run lint`, allowing lint errors to slip into `main`. Lint now runs on every PR.
+
+### Security
+
+- **Forgeable admin sessions when `SECRET_KEY` unset (HIGH)** — In production, `getSecret()` silently fell back to `DEFAULT_SECRET`, a constant in the public source code. Anyone who read the repo could forge a valid admin session cookie and bypass authentication entirely. Production now throws on first use instead of degrading to a known secret. Dev mode is unaffected.
+- **XFF-spoofable login brute-force protection (HIGH)** — The per-IP login rate limit (`5/min`) could be bypassed by rotating the `X-Forwarded-For` header on bare-IP deploys (the recommended Docker path). Added a global login throttle (`15/min` regardless of IP) that closes this vector for LinkBreeze's single-admin model.
+- **Subscriber table-flooding DoS (HIGH)** — The public `subscribe()` endpoint had no rate limit, and `subscribers.email` had no unique constraint — the code's duplicate-catch never fired. Added a per-IP rate limit (`10/min`) and a `UNIQUE INDEX` on `email` (migration 0005). Existing duplicates are deduplicated on migrate.
+- **Stored XSS via backup restore (MEDIUM)** — `restoreBackup()` validated row shapes but not link URL schemes. A shared backup file could carry `javascript:` URLs that render as clickable links on the public page, executing script in every visitor's browser. Link URLs in backups are now re-validated through `isAllowedLinkUrl()` and offending rows are dropped.
+- **Host-header injection → QR phishing / OG spoofing (MEDIUM)** — Both `getOrigin()` functions (QR API + public page metadata) fully trusted `X-Forwarded-Host`/`X-Forwarded-Proto`. An attacker could make the instance generate a QR code pointing to `evil.com`, or emit `og:url`/canonical/JSON-LD pointing at an attacker domain. Added an optional `BASE_URL` env var — when set, forwarded host headers are ignored entirely.
+
+### Changed
+
+- **Dependency updates** — Merged 3 safe Dependabot PRs: recharts 3.9.1→3.9.2 + shadcn/ui 4.12→4.13 (minor), `@types/bcryptjs` 2.4.6→3.0.0 (dev types), `@types/node` 20.19.43→26.1.0 (dev types).
+
 ## [1.1.1] - 2026-07-07
 
 ### Fixed

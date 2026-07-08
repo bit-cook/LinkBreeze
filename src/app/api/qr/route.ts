@@ -7,6 +7,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 function getOrigin(request: NextRequest): string {
+  // If BASE_URL is set, always use it — prevents host-header injection
+  // (X-Forwarded-Host spoofing → QR phishing, OG/canonical spoofing).
+  if (process.env.BASE_URL) return process.env.BASE_URL.replace(/\/$/, "");
   const proto = request.headers.get("x-forwarded-proto") || "http";
   const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || "localhost";
   return `${proto}://${host}`;
