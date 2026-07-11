@@ -83,7 +83,7 @@ export const themes = sqliteTable("themes", {
   // Layout
   containerWidth: text("container_width").notNull().default("standard"), // narrow, standard, wide
   alignment: text("alignment").notNull().default("center"), // left, center, right
-  density: text("density").notNull().default("comfortable"), // compact, comfortable, spacious
+  density: text("density").notNull().default("normal"), // compact, normal, relaxed
 
   // Effects
   glow: text("glow").notNull().default("false"),

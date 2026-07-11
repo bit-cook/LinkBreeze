@@ -14,6 +14,9 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   output: "standalone",
 
+  // Don't leak "X-Powered-By: Next.js" in response headers.
+  poweredByHeader: false,
+
   // Force the Drizzle migration files (.sql + meta/_journal.json) to be bundled
   // into the standalone server output. They're read at runtime by the
   // auto-migrate step in src/instrumentation.ts; without this, file tracing may
@@ -30,6 +33,17 @@ const nextConfig: NextConfig = {
   // better-sqlite3 is a native module — exclude it from the server bundling
   // so the standalone server loads it from node_modules at runtime.
   serverExternalPackages: ["better-sqlite3"],
+
+  // Tree-shake large barrel-export packages to reduce client bundle size.
+  experimental: {
+    optimizePackageImports: [
+      "lucide-react",
+      "recharts",
+      "@dnd-kit/core",
+      "@dnd-kit/sortable",
+      "@dnd-kit/utilities",
+    ],
+  },
 
   // Allow SVG through the image optimizer (the logo + QR code are SVG). The
   // CSP strips scripting/sandbox from served SVG, which neutralizes the XSS

@@ -97,7 +97,7 @@ export default async function DashboardPage({
   const activeCount = links.filter((l) => l.isActive).length;
 
   const cards = [
-    { label: "Views", value: stats.totalViews.toLocaleString(), icon: Eye, hint: `Page views in range` },
+    { label: "Views", value: stats.totalViews.toLocaleString(), icon: Eye, hint: `${stats.uniqueVisitors.toLocaleString()} unique visitors` },
     { label: "Clicks", value: stats.totalClicks.toLocaleString(), icon: MousePointerClick, hint: `Link clicks in range` },
     { label: "Click-through rate", value: `${stats.ctr}%`, icon: TrendingUp, hint: "Clicks ÷ views" },
     { label: "Active links", value: activeCount.toString(), icon: LinkIcon, hint: `${links.length} total` },

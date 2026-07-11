@@ -36,6 +36,7 @@ export interface SocialLink {
 
 export interface DashboardStats {
   totalViews: number;
+  uniqueVisitors: number;
   totalClicks: number;
   ctr: number;
   topLinks: Array<{ id: number; title: string; clicks: number }>;
@@ -188,31 +189,24 @@ export async function reorderLinks(orderedIds: number[]): Promise<void> {
 // ─── Themes ───────────────────────────────────────────────────────────────────
 
 export async function getActiveTheme(): Promise<ThemeRow | null> {
+  // Ensure presets exist before querying. This was previously an inline
+  // fallback that seeded a SINGLE Aurora theme, which prevented
+  // seedThemesIfEmpty() from ever running (it saw count > 0 and bailed).
+  // The public page calls getActiveTheme() before the admin theme page is
+  // visited, so this must be the single source of truth for seeding.
+  await seedThemesIfEmpty();
+
   const rows = await db.select().from(themes).where(eq(themes.isActive, true)).limit(1);
   if (rows[0]) return rows[0];
 
-  // Fall back: if no active theme, seed a default.
-  const any = await db.select().from(themes).limit(1);
+  // No active theme — activate the first preset.
+  const any = await db.select().from(themes).orderBy(asc(themes.id)).limit(1);
   if (any[0]) {
     await db.update(themes).set({ isActive: true }).where(eq(themes.id, any[0].id));
-    return any[0];
+    return { ...any[0], isActive: true };
   }
-  // Seed a default theme if the table is empty.
-  const seeded = await db
-    .insert(themes)
-    .values({
-      name: "Aurora",
-      backgroundType: "aurora",
-      backgroundValue: "#0a0820",
-      fontFamily: "var(--font-sans), sans-serif",
-      primaryColor: "#533fd6",
-      textColor: "#eceafe",
-      linkStyle: "glass",
-      animationType: "lift",
-      isActive: true,
-    })
-    .returning();
-  return seeded[0];
+
+  return null;
 }
 
 export async function getActiveThemeData(): Promise<ThemeRow | null> {
@@ -669,6 +663,12 @@ export async function getDashboardStats(range: AnalyticsRange = "7d"): Promise<D
     .where(gt(analyticsPageviews.createdAt, since));
   const totalViews = viewRows[0]?.c ?? 0;
 
+  const uniqueRows = await db
+    .select({ c: sql<number>`count(distinct ${analyticsPageviews.visitorHash})` })
+    .from(analyticsPageviews)
+    .where(gt(analyticsPageviews.createdAt, since));
+  const uniqueVisitors = uniqueRows[0]?.c ?? 0;
+
   const clickRows = await db
     .select({ c: sql<number>`count(*)` })
     .from(analyticsClicks)
@@ -726,7 +726,7 @@ export async function getDashboardStats(range: AnalyticsRange = "7d"): Promise<D
 
   const ctr = totalViews > 0 ? Math.round((totalClicks / totalViews) * 100) : 0;
 
-  return { totalViews, totalClicks, ctr, topLinks, viewsPerDay };
+  return { totalViews, uniqueVisitors, totalClicks, ctr, topLinks, viewsPerDay };
 }
 
 /** Top referrers / devices / countries among views in the window. */

@@ -68,6 +68,8 @@ const LINK_TYPES = [
   { value: "phone", label: "Phone" },
   { value: "whatsapp", label: "WhatsApp" },
   { value: "sms", label: "SMS" },
+  { value: "vcard", label: "vCard (contact card)" },
+  { value: "file", label: "File download" },
   { value: "embed", label: "Embed (YouTube, Spotify, etc.)" },
 ] as const;
 

@@ -43,6 +43,13 @@
       "when": 1752105600000,
       "tag": "0005_subscribers_email_unique",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1752249600000,
+      "tag": "0006_fix_theme_density_and_seeding",
+      "breakpoints": true
     }
   ]
 }

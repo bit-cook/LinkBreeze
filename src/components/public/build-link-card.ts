@@ -40,17 +40,6 @@ export function buildLinkCardHtml(
       ? `var(--lb-border-width) solid var(--lb-accent)`
       : `var(--lb-border-width) solid var(--lb-card-border)`;
 
-  const hoverTransform =
-    hoverEffect === "scale" ? "scale(1.02)"
-    : hoverEffect === "glow" ? "none"
-    : hoverEffect === "lift" || hoverEffect === "scale" ? "translateY(-3px)"
-    : "none";
-
-  const hoverShadow =
-    isNeon || hoverEffect === "glow"
-      ? `0 0 24px ${isNeon ? "var(--lb-accent)" : "var(--lb-glow)"}`
-      : "var(--lb-shadow)";
-
   const reveal =
     theme.animationType === "none"
       ? ""
@@ -65,11 +54,23 @@ export function buildLinkCardHtml(
     : "";
 
   const title = esc(link.title);
-  const href = esc(link.url);
-  const isExternal = href.startsWith("http://") || href.startsWith("https://");
-  const targetAttr = isExternal ? ` target="_blank" rel="noopener noreferrer nofollow"` : "";
+  const rawUrl = link.url;
+  const isExternal = rawUrl.startsWith("http://") || rawUrl.startsWith("https://");
 
-  const clickHandler = `navigator.sendBeacon('/api/track', JSON.stringify({type:'click',linkId:${link.id}}))`;
+  // For http(s) links: use /go/:id redirect as the href — records the click
+  // server-side and works without JS (crawlers, in-app browsers, JS-disabled).
+  // For other link types (mailto, tel, etc.): keep the direct href and fire
+  // sendBeacon for best-effort tracking.
+  const href = isExternal ? `/go/${link.id}` : esc(rawUrl);
+  const targetAttr = isExternal ? ` target="_blank" rel="noopener noreferrer nofollow"` : "";
+  const clickHandler = isExternal
+    ? ""
+    : `navigator.sendBeacon('/api/track', JSON.stringify({type:'click',linkId:${link.id}}))`;
+  const onclickAttr = clickHandler ? `\n  onclick="${clickHandler}"` : "";
+
+  // CSS-based hover effects (class + data attributes) — replaces inline
+  // onmouseover/onmouseout so prefers-reduced-motion can gate them.
+  const hoverAttrs = ` class="lb-link-card" data-hover="${hoverEffect}"${isNeon ? ` data-neon="true"` : ""}`;
 
   const imageUrl = link.imageUrl ?? "";
   const hasImage = !!imageUrl;
@@ -101,8 +102,7 @@ export function buildLinkCardHtml(
   // content row below). Cards without thumbnail use flex directly on the <a>.
   if (hasImage) {
     return `<a
-  href="${href}"${targetAttr}
-  onclick="${clickHandler}"
+  href="${href}"${targetAttr}${onclickAttr}${hoverAttrs}
   style="
     display:block;text-decoration:none;width:100%;box-sizing:border-box;
     margin:0 0 var(--lb-spacing);
@@ -110,8 +110,6 @@ export function buildLinkCardHtml(
     color:var(--lb-text);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
     ${backdropBlur}${overflow}${reveal}
   "
-  onmouseover="this.style.transform='${hoverTransform}';this.style.boxShadow='${hoverShadow}';this.style.borderColor='var(--lb-accent)'"
-  onmouseout="this.style.transform='none';this.style.boxShadow='none';this.style.borderColor='${isNeon ? "var(--lb-accent)" : "var(--lb-card-border)"}'"
 >
   ${image}
   ${contentRow}
@@ -119,8 +117,7 @@ export function buildLinkCardHtml(
   }
 
   return `<a
-  href="${href}"${targetAttr}
-  onclick="${clickHandler}"
+  href="${href}"${targetAttr}${onclickAttr}${hoverAttrs}
   style="
     display:flex;align-items:center;text-decoration:none;width:100%;box-sizing:border-box;
     padding:var(--lb-btn-padding-y) var(--lb-btn-padding-x);margin:0 0 var(--lb-spacing);
@@ -128,8 +125,6 @@ export function buildLinkCardHtml(
     color:var(--lb-text);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
     ${backdropBlur}${reveal}
   "
-  onmouseover="this.style.transform='${hoverTransform}';this.style.boxShadow='${hoverShadow}';this.style.borderColor='var(--lb-accent)'"
-  onmouseout="this.style.transform='none';this.style.boxShadow='none';this.style.borderColor='${isNeon ? "var(--lb-accent)" : "var(--lb-card-border)"}'"
 >
   <span style="display:flex;flex-direction:column;flex:1;min-width:0">
     <span style="display:flex;align-items:center;font-weight:var(--lb-font-weight);font-size:calc(var(--lb-font-size) + 1px);letter-spacing:var(--lb-letter-spacing)">${highlightDot}${title}</span>

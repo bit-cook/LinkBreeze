@@ -158,7 +158,14 @@ export default async function PublicPage({ params }: PageProps) {
       ) : null}
       {/* Inject theme tokens as CSS custom properties on :root */}
       <style dangerouslySetInnerHTML={{ __html: themeStyleBlock }} />
+      <a
+        href="#lb-main"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg"
+      >
+        Skip to content
+      </a>
       <main
+        id="lb-main"
         style={{
           background: useAurora ? undefined : background,
           color: "var(--lb-text)",

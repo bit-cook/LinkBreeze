@@ -151,3 +151,16 @@
   .aurora-blob { animation: none !important; }
   .aurora-rise { animation: none !important; opacity: 1; transform: none; }
 }
+
+/* ── Link card hover (CSS-based so prefers-reduced-motion can gate it) ──── */
+.lb-link-card { transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
+.lb-link-card:hover { border-color: var(--lb-accent); box-shadow: var(--lb-shadow); }
+.lb-link-card[data-hover="lift"]:hover { transform: translateY(-3px); }
+.lb-link-card[data-hover="scale"]:hover { transform: scale(1.02); }
+.lb-link-card[data-hover="glow"]:hover { box-shadow: 0 0 24px var(--lb-glow); }
+.lb-link-card[data-neon="true"]:hover { box-shadow: 0 0 24px var(--lb-accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .lb-link-card { transition: none !important; }
+  .lb-link-card:hover { transform: none !important; }
+}

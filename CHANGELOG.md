@@ -5,10 +5,12 @@ All notable changes to LinkBreeze will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.1.2] - Unreleased
+## [1.1.2] - 2026-07-11
 
 ### Fixed
 
+- **Themes not seeding on fresh deploy (only Aurora appears)** — `getActiveTheme()` had an inline fallback that seeded a single Aurora theme when the database was empty. Because the public page calls `getActiveTheme()` before the admin theme page is ever visited, this single Aurora prevented `seedThemesIfEmpty()` from running (it saw count > 0 and bailed). The other 8 presets never appeared. Fixed: `getActiveTheme()` now delegates to `seedThemesIfEmpty()`, making it the single source of truth. Migration 0006 also cleans up orphan fallback themes on existing broken deployments. Fixes #35.
+- **Theme changes silently not saved (Zod validation failure)** — The `density` column defaulted to `"comfortable"` in the schema, but the Zod validator only accepts `"compact"`, `"normal"`, `"relaxed"`. Themes seeded by the fallback path inherited this bad value. When the user saved, the Select submitted `"comfortable"`, Zod's `safeParse` rejected the entire payload, and the error was silently swallowed by the client. Fixed: schema default changed to `"normal"`, migration 0006 repairs existing data, and the save handler now surfaces errors instead of hiding them. Fixes #35.
 - **Floating promise in subscriber clear** — `clearAllSubscribers()` called the async `clearSubscribers()` without `await`, returning success before the DB delete completed and silently swallowing errors. The delete is now awaited.
 - **CSV export link lint error** — The subscriber export `<a>` tag was flagged by `@next/next/no-html-link-for-pages`. Added the `download` attribute (semantically correct for file downloads — the linter recognizes `download` as an explicit non-navigation marker).
 - **Unused eslint-disable in OG image route** — Removed a stale `// eslint-disable-next-line @next/next/no-img-element` directive that was no longer needed (the rule doesn't trigger inside `ImageResponse`).
@@ -25,6 +27,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Dependency updates** — Merged 3 safe Dependabot PRs: recharts 3.9.1→3.9.2 + shadcn/ui 4.12→4.13 (minor), `@types/bcryptjs` 2.4.6→3.0.0 (dev types), `@types/node` 20.19.43→26.1.0 (dev types).
+- **`next.config.ts` optimizations** — Disabled `poweredByHeader` (no longer leaks `X-Powered-By: Next.js`). Enabled `experimental.optimizePackageImports` for `lucide-react`, `recharts`, and `@dnd-kit/*` to tree-shake barrel exports and reduce client bundle size.
+- **CSS-based link card hover** — Replaced inline `onmouseover`/`onmouseout` JS handlers on public-page link cards with CSS `:hover` rules using class + data attributes. This produces cleaner HTML output (2 fewer inline JS attributes per card) and enables proper `prefers-reduced-motion` gating.
+
+### Added
+
+- **Unique visitor count in dashboard** — The `visitorHash` was collected on every pageview since v1.0.0 but the dashboard only displayed total views (`COUNT(*)`). The Views card now shows the unique visitor count alongside total views, computed via `COUNT(DISTINCT visitorHash)`.
+- **JS-free click tracking via `/go/:id` redirect** — Click tracking previously relied entirely on client-side `navigator.sendBeacon`, which fails for JS-disabled browsers, crawlers, and in-app browsers that block it. Public-page http(s) links now use `/go/:id` as their href — the server records the click (same visitor-hash logic as `/api/track`) then 302-redirects to the real URL. Non-http links (mailto, tel, etc.) still use the sendBeacon fallback. Closes #19.
+- **`vCard` and `File` link types in the admin UI** — The schema and URL validator supported 8 link types, but the admin dropdown only exposed 6 (`vcard` and `file` were missing). Both are now selectable when creating or editing a link.
+- **`npm run seed` script** — The demo seed script (`src/scripts/seed-demo.ts`) existed but had no `package.json` entry. Added `"seed": "tsx src/scripts/seed-demo.ts"` so developers can populate a fresh database with one command. Closes #8.
+- **Skip-to-content link on public pages** — Keyboard and screen-reader users previously had to tab through the entire header before reaching link content. A visually-hidden "Skip to content" link now appears on focus, jumping directly to the main content area.
+- **`prefers-reduced-motion` support for link card hover** — Hover effects on public-page link cards (lift, scale, glow transforms) were applied via inline JS and ignored the user's OS-level reduced-motion preference. Hover transforms are now disabled for users who request reduced motion, matching the existing aurora-background behavior.
 
 ## [1.1.1] - 2026-07-07
 

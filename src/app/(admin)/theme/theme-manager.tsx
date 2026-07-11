@@ -251,6 +251,7 @@ function SliderField({
 export function ThemeManager({ themes, activeId, active }: ThemeManagerProps) {
   const [selecting, setSelecting] = React.useState<number | null>(null);
   const [customPending, setCustomPending] = React.useState(false);
+  const [customError, setCustomError] = React.useState<string | null>(null);
   const [dupName, setDupName] = React.useState("");
   const [dupPending, setDupPending] = React.useState(false);
   const [delPending, setDelPending] = React.useState<number | null>(null);
@@ -266,12 +267,21 @@ export function ThemeManager({ themes, activeId, active }: ThemeManagerProps) {
     }
   };
 
-  const handleCustom = (formData: FormData) => {
+  const handleCustom = async (formData: FormData) => {
     setCustomPending(true);
-    customizeActiveTheme(formData).finally(() => {
+    setCustomError(null);
+    try {
+      const res = await customizeActiveTheme(formData);
+      if (!res.success) {
+        setCustomError(res.error);
+      } else {
+        router.refresh();
+      }
+    } catch {
+      setCustomError("Failed to save theme. Please try again.");
+    } finally {
       setCustomPending(false);
-      router.refresh();
-    });
+    }
   };
 
   const handleDuplicate = async () => {
@@ -685,16 +695,21 @@ export function ThemeManager({ themes, activeId, active }: ThemeManagerProps) {
                   />
                 </section>
               </CardContent>
-              <CardFooter className="flex items-center justify-between">
-                <p className="text-xs text-muted-foreground">
-                  {isCustom
-                    ? "Editing a custom theme"
-                    : "Editing a preset — duplicate it first to keep changes separate"}
-                </p>
-                <Button type="submit" disabled={customPending}>
-                  <Save className="size-4" />
-                  {customPending ? "Saving…" : "Save changes"}
-                </Button>
+              <CardFooter className="flex flex-col gap-2">
+                {customError ? (
+                  <p className="w-full text-xs text-destructive">{customError}</p>
+                ) : null}
+                <div className="flex w-full items-center justify-between">
+                  <p className="text-xs text-muted-foreground">
+                    {isCustom
+                      ? "Editing a custom theme"
+                      : "Editing a preset — duplicate it first to keep changes separate"}
+                  </p>
+                  <Button type="submit" disabled={customPending}>
+                    <Save className="size-4" />
+                    {customPending ? "Saving…" : "Save changes"}
+                  </Button>
+                </div>
               </CardFooter>
             </form>
           </Card>
