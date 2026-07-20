@@ -41,13 +41,22 @@ const geistMono = Geist_Mono({
 
 // ─── Theme fonts (public page) ───────────────────────────────────────────────
 // Curated font picker. Each maps to a --lb-font-* CSS variable that the
-// theme-tokens resolver references. Loaded server-side via next/font/google —
-// no client-side font requests, no layout shift.
+// theme-tokens resolver references. Loaded server-side via next/font/google.
+//
+// preload: false — critical for public page performance. With preload on
+// (the next/font default), the browser downloads ALL 9 font families × all
+// their weights on EVERY page (21 woff2 files ≈ 483KB) even though the
+// active theme only uses ONE. With preload off, the @font-face rules still
+// exist in the CSS (so the admin theme picker works), but the browser only
+// downloads a font when an element actually renders with that font-family.
+// Net effect on the public page: 1 font downloads instead of 9. The admin
+// theme preview still works (fonts swap in on-demand, a ~100ms FOUT).
 const poppins = Poppins({
   variable: "--lb-font-poppins",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
+  preload: false,
 });
 
 const playfair = Playfair_Display({
@@ -56,6 +65,7 @@ const playfair = Playfair_Display({
   weight: ["400", "500", "600", "700"],
   style: ["normal", "italic"],
   display: "swap",
+  preload: false,
 });
 
 const jetbrains = JetBrains_Mono({
@@ -63,6 +73,7 @@ const jetbrains = JetBrains_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
+  preload: false,
 });
 
 const spaceGrotesk = Space_Grotesk({
@@ -70,6 +81,7 @@ const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
+  preload: false,
 });
 
 const dmSans = DM_Sans({
@@ -77,6 +89,7 @@ const dmSans = DM_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
+  preload: false,
 });
 
 const lora = Lora({
@@ -85,6 +98,7 @@ const lora = Lora({
   weight: ["400", "500", "600", "700"],
   style: ["normal", "italic"],
   display: "swap",
+  preload: false,
 });
 
 const bebas = Bebas_Neue({
@@ -92,6 +106,7 @@ const bebas = Bebas_Neue({
   subsets: ["latin"],
   weight: ["400"],
   display: "swap",
+  preload: false,
 });
 
 const sora = Sora({
@@ -99,6 +114,7 @@ const sora = Sora({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
+  preload: false,
 });
 
 const outfit = Outfit({
@@ -106,6 +122,7 @@ const outfit = Outfit({
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
+  preload: false,
 });
 
 export const metadata: Metadata = {
