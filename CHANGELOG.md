@@ -5,6 +5,17 @@ All notable changes to LinkBreeze will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased — v1.1.4]
+
+### Added
+
+- **PWA manifest upgrade for public pages (closes #18)** — The manifest existed but was missing the fields browsers actually check before showing the install / "Add to Home Screen" prompt. Without `start_url` and `scope`, Android and Desktop Chrome treat the page as non-installable; without a maskable icon, Android adaptive-icon launchers letterbox the icon. Added: `start_url` (`/?source=pwa`, also lets us measure PWA launches in analytics), `scope: "/"`, `orientation: "portrait"`, `categories`, `lang`, `dir`, a maskable variant of the 192px and 512px icons, and a `screenshots` entry (Android shows this in the install sheet). `theme_color`/`background_color` kept as the existing Aurora dark navy.
+- **Manifest contract test** — `src/lib/__tests__/manifest.test.ts` (6 tests) parses `public/site.webmanifest` and asserts the install-prompt-critical fields (name, short_name ≤12 chars, standalone display, start_url + scope, hex theme/background color, 192px + 512px icons present, at least one maskable icon). Prevents silent regressions where someone edits the JSON and breaks installation. Full suite now 159 passing (was 153).
+
+### Changed
+
+- **Dependency bumps** — Merged #36 (minor-and-patch group) and #33 (vitest 3.2.6 → 4.1.10). Closed #37 (typescript 7 — blocked by `@typescript-eslint` peer range), #26 (eslint 10 — blocked by `eslint-plugin-react` incompatibility), and #22 (node 26-alpine — non-LTS, conflicting).
+
 ## [1.1.3] - 2026-07-16
 
 ### Fixed
