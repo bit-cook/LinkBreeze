@@ -318,9 +318,10 @@ function SearchVisibilityCard({
 interface IntegrationTabProps {
   pageId?: number;
   slug: string;
-  analyticsScript: string;
+  analyticsScript: string | null;
   consentText: string | null;
   emailCapture: boolean;
+  shareEnabled: boolean;
 }
 
 export function IntegrationTab({
@@ -329,6 +330,7 @@ export function IntegrationTab({
   analyticsScript,
   consentText,
   emailCapture,
+  shareEnabled,
 }: IntegrationTabProps) {
   const t = useTranslations("settings.integration");
   const tInt = t;
@@ -336,11 +338,13 @@ export function IntegrationTab({
   const [pending, startTransition] = React.useTransition();
   const [saved, setSaved] = React.useState(false);
   const [emailEnabled, setEmailEnabled] = React.useState(emailCapture);
+  const [shareOn, setShareOn] = React.useState(shareEnabled);
   const { reload: reloadPreview } = usePreview();
   const router = useRouter();
 
   const handleSubmit = (formData: FormData) => {
     formData.set("emailCapture", emailEnabled ? "on" : "off");
+    formData.set("shareEnabled", shareOn ? "on" : "off");
     if (pageId) {
       formData.set("pageId", String(pageId));
       startTransition(async () => {
@@ -383,7 +387,7 @@ export function IntegrationTab({
             <textarea
               id="analyticsScript"
               name="analyticsScript"
-              defaultValue={analyticsScript}
+              defaultValue={analyticsScript || ""}
               maxLength={2000}
               placeholder={'<script defer data-domain="example.com" src="https://plausible.io/js/script.js"></script>'}
               className="min-h-[80px] w-full rounded-lg border border-input bg-transparent px-2.5 py-2 font-mono text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
@@ -416,6 +420,16 @@ export function IntegrationTab({
             />
           </FormField>
           ) : null}
+
+          <FormField
+            label={t("shareBlock")}
+            hint={tInt.rich("shareBlockHintRich", { em: (chunk) => <em>{chunk}</em> })}
+          >
+            <label className="flex items-center gap-2 text-sm">
+              <Switch checked={shareOn} onCheckedChange={setShareOn} />
+              {shareOn ? t("enabled") : t("disabled")}
+            </label>
+          </FormField>
         </CardContent>
         <CardFooter className="gap-3">
           <Button type="submit" disabled={pending}>

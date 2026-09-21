@@ -169,6 +169,13 @@
       "when": 1966777700300,
       "tag": "0023_totp",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1966777700400,
+      "tag": "0024_share_enabled",
+      "breakpoints": true
     }
   ]
 }

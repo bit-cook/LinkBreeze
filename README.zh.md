@@ -439,7 +439,7 @@ cloudflared tunnel --url http://localhost:3000
 
 ## ⚙️ 配置
 
-所有配置通过环境变量（`.env`）完成：
+所有配置通过环境变量（`.env`）完成。**`.env.example` 是权威参考**——复制它（`cp .env.example .env`），其中记录了每个变量，包括钱包凭据区块及其注意事项：
 
 | 变量 | 默认值 | 说明 |
 |------|--------|------|
@@ -447,6 +447,16 @@ cloudflared tunnel --url http://localhost:3000
 | `DATABASE_PATH` | `./data/linkbreeze.db` | SQLite 数据库文件路径 |
 | `SECRET_KEY` | 自动生成 | 会话的 HMAC 签名密钥 |
 | `EXTRA_SCRIPT_SRC` | _(空)_ | CSP 允许的统计域名，空格分隔（如 `plausible.io umami.is`） |
+| `GOOGLE_WALLET_ISSUER_ID` | _(空)_ | 在公开页面上启用“添加到 Google Wallet”按钮。Google Pay & Wallet Console 中的数字发卡机构 ID。 |
+| `GOOGLE_WALLET_SERVICE_ACCOUNT_JSON` | _(空)_ | 已获 Wallet API 授权的服务账号完整 JSON（`client_email` + `private_key`）。 |
+| `APPLE_WALLET_CERT_PEM` | _(空)_ | 启用“添加到 Apple Wallet”按钮。Pass Type ID 签名证书（PEM）。 |
+| `APPLE_WALLET_KEY_PEM` | _(空)_ | 与签名证书匹配的私钥（PEM）。 |
+| `APPLE_WALLET_KEY_PASSPHRASE` | _(空)_ | 签名密钥的密码（如已加密）。 |
+| `APPLE_WALLET_WWDR_PEM` | _(空)_ | Apple WWDR 中间证书（PEM）。 |
+| `APPLE_WALLET_TEAM_ID` | _(空)_ | 你的 10 位 Apple Team ID。 |
+| `APPLE_WALLET_PASS_TYPE_ID` | _(空)_ | 你的 Pass Type ID（必须以 `pass.` 开头）。 |
+
+**钱包通行证与联系人导出：**每个公开页面都会渲染一个分享区块，其中包含“保存联系人”按钮（通用 vCard，始终启用）。配置上述凭据后，“添加到 Google Wallet”（发卡机构账号免费；在 Google 批准生产访问之前，通行证仅对白名单测试用户可保存）和“添加到 Apple Wallet”（需要付费 Apple 开发者账号；通行证仅支持从 Safari 安装）按钮会自动点亮。通行证是静态快照——通行证上的二维码始终打开实时页面。“设置 → 集成”标签页显示每个钱包的凭据状态，并在 Apple 签名证书即将过期时发出警告。
 
 **使用第三方统计（Plausible、Umami、Matomo、Google Analytics）：**
 

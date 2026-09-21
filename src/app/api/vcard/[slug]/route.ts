@@ -1,0 +1,61 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getPageBySlug } from "@/server/queries";
+import { rateLimit } from "@/lib/rate-limit";
+import { buildVCard, vcardFilename, pageToVCardInput } from "@/lib/wallet/vcard";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+/** Absolute origin — BASE_URL when set (anti host-header spoofing, same as /api/qr). */
+function getOrigin(request: NextRequest): string {
+  if (process.env.BASE_URL) return process.env.BASE_URL.replace(/\/$/, "");
+  const proto = request.headers.get("x-forwarded-proto") || "http";
+  const host =
+    request.headers.get("x-forwarded-host") ||
+    request.headers.get("host") ||
+    "localhost";
+  return `${proto}://${host}`;
+}
+
+/**
+ * vCard download for a public page. Read-only GET, no demoGuard (the demo
+ * instance should show the full share feature). Content-Disposition is
+ * attachment so browsers hand the file to the contacts app instead of
+ * rendering text.
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ slug: string }> },
+) {
+  const ip =
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const rl = rateLimit(`vcard:${ip}`, 10, 60_000);
+  if (!rl.ok) {
+    return NextResponse.json(
+      { error: "Too many requests" },
+      {
+        status: 429,
+        headers: {
+          "Retry-After": String(Math.ceil((rl.resetAt - Date.now()) / 1000)),
+        },
+      },
+    );
+  }
+
+  const { slug } = await params;
+  const page = await getPageBySlug(slug);
+  if (!page) {
+    return NextResponse.json({ error: "Page not found" }, { status: 404 });
+  }
+
+  const vcard = buildVCard(pageToVCardInput(page, getOrigin(request)));
+
+  return new NextResponse(vcard, {
+    status: 200,
+    headers: {
+      "Content-Type": "text/vcard; charset=utf-8",
+      "Content-Disposition": `attachment; filename="${vcardFilename(page.slug)}"`,
+      "Cache-Control": "no-store",
+    },
+  });
+}

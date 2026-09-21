@@ -84,6 +84,7 @@ const updatePageSchema = z.object({
   analyticsScript: z.string().max(2000).optional(),
   customCss: z.string().max(10000).optional(),
   emailCapture: z.boolean().optional(),
+  shareEnabled: z.boolean().optional(),
   faviconUrl: z.string().max(500).optional().nullable(),
   privacyPolicy: z.string().max(20000).optional(),
   qrSettings: z.string().max(500).optional(),
@@ -115,6 +116,11 @@ export async function updatePageAction(formData: FormData): Promise<ActionResult
     faviconUrl: formData.get("faviconUrl") || undefined,
     privacyPolicy: formData.get("privacyPolicy") || undefined,
     qrSettings: formData.get("qrSettings") || undefined,
+    // Checkbox tri-state, same contract as emailCapture: present = explicit
+    // on/off from a form that contains it; absent = leave unchanged.
+    shareEnabled: formData.has("shareEnabled")
+      ? formData.get("shareEnabled") === "on"
+      : undefined,
   };
 
   // Handle checkbox: present = on, absent = leave unchanged (the field lives

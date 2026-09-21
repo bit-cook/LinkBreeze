@@ -435,7 +435,7 @@ For a complete Docker Compose setup with Cloudflare Tunnel, see [`examples/docke
 
 ## ⚙️ Configuration
 
-All configuration is via environment variables (`.env`):
+All configuration is via environment variables (`.env`). **`.env.example` is the canonical reference** — copy it (`cp .env.example .env`) and it documents every variable, including the wallet-credential blocks with their caveats inline:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -443,6 +443,16 @@ All configuration is via environment variables (`.env`):
 | `DATABASE_PATH` | `./data/linkbreeze.db` | SQLite database file path |
 | `SECRET_KEY` | Auto-generated | HMAC signing key for sessions |
 | `EXTRA_SCRIPT_SRC` | _(empty)_ | Space-separated analytics domains for CSP (e.g. `plausible.io umami.is`) |
+| `GOOGLE_WALLET_ISSUER_ID` | _(empty)_ | Enables "Add to Google Wallet" buttons on public pages. Numeric issuer ID from the Google Pay & Wallet Console. |
+| `GOOGLE_WALLET_SERVICE_ACCOUNT_JSON` | _(empty)_ | Full service-account JSON (`client_email` + `private_key`) authorized for the Wallet API. |
+| `APPLE_WALLET_CERT_PEM` | _(empty)_ | Enables "Add to Apple Wallet" buttons. Pass Type ID signing certificate (PEM). |
+| `APPLE_WALLET_KEY_PEM` | _(empty)_ | Private key matching the signing certificate (PEM). |
+| `APPLE_WALLET_KEY_PASSPHRASE` | _(empty)_ | Passphrase for the signing key, if encrypted. |
+| `APPLE_WALLET_WWDR_PEM` | _(empty)_ | Apple WWDR intermediate certificate (PEM). |
+| `APPLE_WALLET_TEAM_ID` | _(empty)_ | Your 10-character Apple Team ID. |
+| `APPLE_WALLET_PASS_TYPE_ID` | _(empty)_ | Your Pass Type ID (must start with `pass.`). |
+
+**Wallet passes & contact export:** every public page renders a share block with a "Save contact" button (universal vCard, always on). When the matching credentials above are configured, "Add to Google Wallet" (free issuer account; passes only save for whitelisted test users until Google grants production access) and "Add to Apple Wallet" (requires a paid Apple Developer account; passes install from Safari only) light up automatically. Passes are static snapshots — the QR on the pass always opens the live page. The Settings → Integration tab shows per-wallet credential status and warns when the Apple signing certificate is about to expire.
 
 **Using external analytics (Plausible, Umami, Matomo, Google Analytics):**
 

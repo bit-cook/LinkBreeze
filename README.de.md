@@ -442,7 +442,7 @@ Für ein vollständiges Docker-Compose-Setup mit Cloudflare Tunnel siehe [`examp
 
 ## ⚙️ Konfiguration
 
-Die gesamte Konfiguration läuft über Umgebungsvariablen (`.env`):
+Die gesamte Konfiguration läuft über Umgebungsvariablen (`​.env`). **`​.env.example` ist die maßgebliche Referenz** — kopiere sie (`cp .env.example .env`): Sie dokumentiert jede Variable, einschließlich der Wallet-Credential-Blöcke mit ihren Hinweisen:
 
 | Variable | Standard | Beschreibung |
 |----------|----------|--------------|
@@ -450,6 +450,16 @@ Die gesamte Konfiguration läuft über Umgebungsvariablen (`.env`):
 | `DATABASE_PATH` | `./data/linkbreeze.db` | Pfad der SQLite-Datenbankdatei |
 | `SECRET_KEY` | Automatisch generiert | HMAC-Signaturschlüssel für Sessions |
 | `EXTRA_SCRIPT_SRC` | _(leer)_ | Durch Leerzeichen getrennte Analyse-Domains für die CSP (z. B. `plausible.io umami.is`) |
+| `GOOGLE_WALLET_ISSUER_ID` | _(leer)_ | Aktiviert „Zu Google Wallet hinzufügen“-Buttons auf öffentlichen Seiten. Numerische Issuer-ID aus der Google Pay & Wallet Console. |
+| `GOOGLE_WALLET_SERVICE_ACCOUNT_JSON` | _(leer)_ | Vollständiger Service-Account-JSON (`client_email` + `private_key`), für die Wallet API autorisiert. |
+| `APPLE_WALLET_CERT_PEM` | _(leer)_ | Aktiviert „Zu Apple Wallet hinzufügen“-Buttons. Signaturzertifikat der Pass-Type-ID (PEM). |
+| `APPLE_WALLET_KEY_PEM` | _(leer)_ | Privater Schlüssel zum Signaturzertifikat (PEM). |
+| `APPLE_WALLET_KEY_PASSPHRASE` | _(leer)_ | Passphrase des Signaturschlüssels, falls verschlüsselt. |
+| `APPLE_WALLET_WWDR_PEM` | _(leer)_ | Apple-WWDR-Zwischenzertifikat (PEM). |
+| `APPLE_WALLET_TEAM_ID` | _(leer)_ | Deine 10-stellige Apple Team ID. |
+| `APPLE_WALLET_PASS_TYPE_ID` | _(leer)_ | Deine Pass-Type-ID (muss mit `pass.` beginnen). |
+
+**Wallet-Pässe & Kontakt-Export:** Jede öffentliche Seite zeigt einen Teilen-Block mit einem „Kontakt speichern“-Button (universelles vCard, immer aktiv). Sind die obigen Zugangsdaten konfiguriert, aktivieren sich „Zu Google Wallet hinzufügen“ (kostenloses Issuer-Konto; Pässe lassen sich erst nach Googles Produktions-Freigabe für alle speichern) und „Zu Apple Wallet hinzufügen“ (erfordert ein kostenpflichtiges Apple-Developer-Konto; Pässe lassen sich nur aus Safari installieren) automatisch. Pässe sind statische Schnappschüsse — der QR-Code des Passes öffnet immer die Live-Seite. Der Tab Integration in den Einstellungen zeigt den Zugangsdaten-Status pro Wallet und warnt, wenn das Apple-Signaturzertifikat bald abläuft.
 
 **Externe Analysen verwenden (Plausible, Umami, Matomo, Google Analytics):**
 

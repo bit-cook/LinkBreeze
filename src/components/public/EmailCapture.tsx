@@ -40,7 +40,7 @@ export function EmailCapture({ consentText }: { consentText?: string | null }) {
   if (status === "success") {
     return (
       <p
-        className="mb-2 mt-6 text-center text-sm"
+        className="text-center text-sm"
         style={{ color: "var(--lb-accent)" }}
       >
         Thanks! You&apos;re on the list.
@@ -49,7 +49,7 @@ export function EmailCapture({ consentText }: { consentText?: string | null }) {
   }
 
   return (
-    <form action={handleSubmit} className="mb-2 mt-6 flex flex-col gap-2">
+    <form action={handleSubmit} className="flex flex-col gap-2">
       <div className="flex flex-col gap-2 sm:flex-row">
         <div className="lb-pixel-input-wrap relative flex-1">
           <input

@@ -62,6 +62,8 @@ export const pages = sqliteTable("pages", {
   // Per-page QR style (colors, center logo choice, size) as JSON.
   // NULL = defaults; see src/lib/qr.ts for the shape + resolver.
   qrSettings: text("qr_settings"),
+  // Share & wallet exports block on the public page. NULL = off (opt-in).
+  shareEnabled: integer("share_enabled", { mode: "boolean" }),
 });
 
 // ─── Link sections (1.3) ──────────────────────────────

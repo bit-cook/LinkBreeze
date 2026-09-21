@@ -20,6 +20,7 @@ import { DataManager } from "./data-manager";
 import { SubscribersCard } from "./subscribers-card";
 import { MigrationWizard } from "@/components/admin/MigrationWizard";
 import { SettingsTabs } from "./settings-tabs";
+import { WalletStatusCard } from "./wallet-status-card";
 import { getTranslations } from "next-intl/server";
 import {
   Card,
@@ -102,13 +103,17 @@ export default async function SettingsPage({
             />
           ),
           integration: (
-            <IntegrationTab
-              pageId={activePage?.id}
-              slug={slug}
-              analyticsScript={activePage?.analyticsScript || ""}
-              consentText={consentText}
-              emailCapture={activePage?.emailCapture ?? false}
-            />
+            <div className="flex flex-col gap-4">
+              <WalletStatusCard />
+              <IntegrationTab
+                pageId={activePage?.id}
+                slug={slug}
+                analyticsScript={activePage?.analyticsScript || ""}
+                consentText={consentText}
+                emailCapture={activePage?.emailCapture ?? false}
+                shareEnabled={activePage?.shareEnabled ?? false}
+              />
+            </div>
           ),
           appearance: (
             <div className="flex flex-col gap-4">

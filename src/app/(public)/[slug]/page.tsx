@@ -25,6 +25,9 @@ import { EmailCapture } from "@/components/public/EmailCapture";
 import { SectionHeader } from "@/components/public/SectionHeader";
 import { getSetting } from "@/server/queries";
 import { SocialIcons } from "@/components/public/SocialIcons";
+import { ShareBlock } from "@/components/public/ShareBlock";
+import { parseGoogleCreds } from "@/lib/wallet/google-pass";
+import { parseAppleCreds } from "@/lib/wallet/apple-pass";
 import { AuroraBackground } from "@/components/aurora/AuroraBackground";
 import { VideoBackground } from "@/components/public/VideoBackground";
 import { groupLinksBySection, sectionStaggerDelays } from "@/lib/link-sections";
@@ -239,6 +242,17 @@ export default async function PublicPage({ params }: PageProps) {
     socialLinks: page.socialLinks,
   };
 
+  // Share/wallet exports — opt-in per page (share_enabled, default off).
+  // Wallet buttons additionally require the operator's BYO credentials.
+  const googleWalletEnabled =
+    page.shareEnabled === true &&
+    !!parseGoogleCreds(
+      process.env.GOOGLE_WALLET_SERVICE_ACCOUNT_JSON,
+      process.env.GOOGLE_WALLET_ISSUER_ID,
+    );
+  const appleWalletEnabled =
+    page.shareEnabled === true && !!parseAppleCreds(process.env);
+
   // JSON-LD structured data.
   const origin = await getOrigin();
   const jsonLd = {
@@ -288,7 +302,7 @@ export default async function PublicPage({ params }: PageProps) {
         data-alignment={themeInput.alignment || "center"}
       >
       <div
-        className="lb-container w-full px-5 py-12 sm:py-16"
+        className="lb-container w-full px-5 pt-12 pb-6 sm:pt-16 sm:pb-8"
         style={{
           maxWidth: "var(--lb-container-width)",
           margin: "0 auto",
@@ -356,18 +370,30 @@ export default async function PublicPage({ params }: PageProps) {
           )}
         </div>
 
-        {page.emailCapture ? (
-          <EmailCapture consentText={await getSetting("consentText")} />
+        {page.emailCapture || page.shareEnabled ? (
+          <div className="lb-footer-zone" data-lb-footer-zone>
+            {page.emailCapture ? (
+              <EmailCapture consentText={await getSetting("consentText")} />
+            ) : null}
+
+            {page.shareEnabled ? (
+              <ShareBlock
+                slug={page.slug}
+                theme={themeInput}
+                appleWalletEnabled={appleWalletEnabled}
+                googleWalletEnabled={googleWalletEnabled}
+              />
+            ) : null}
+          </div>
         ) : null}
 
         <footer
-          className="mt-10 text-center text-xs"
-          style={{ color: "var(--lb-text-muted)" }}
+          className="lb-footer"
         >
-          {page.footerText ? <p className="mb-1">{page.footerText}</p> : null}
+          {page.footerText ? <p className="lb-footer-text">{page.footerText}</p> : null}
           <a
             href={`/${page.slug}/privacy`}
-            className="underline-offset-2 hover:underline"
+            className="lb-footer-link underline-offset-2 hover:underline"
           >
             Privacy
           </a>

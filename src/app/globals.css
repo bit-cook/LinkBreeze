@@ -240,6 +240,45 @@
   .lb-tw-caret { display: none; }
 }
 
+/* ── Footer zone & footer ───────────────────────────────────────────────── */
+/* ONE container owns the bottom-of-page rhythm. Flex + gap = deterministic  */
+/* spacing that never collapses, regardless of which children are present    */
+/* (email on/off, share on/off). All per-element mt-* margins removed.       */
+.lb-footer-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Clear the links list (which carries its own section marginBottom) plus  */
+  /* one full rhythm beat before the footer zone starts.                    */
+  margin-top: calc(var(--lb-spacing) * 4);
+  gap: calc(var(--lb-spacing) * 1.5);
+  width: 100%;
+}
+.lb-footer {
+  /* Optical pairing: the divider→Privacy gap (padding-top) equals the       */
+  /* Privacy→page-bottom gap (this padding + the container's small pb-6).    */
+  margin-top: calc(var(--lb-spacing) * 1.5); /* matches the zone's gap — the */
+  /* divider pairs with the Save-contact row as one visually even rhythm.  */
+  padding-top: calc(var(--lb-spacing) * 1.25);
+  padding-bottom: 0; /* the container's pb owns the space below Privacy */
+  border-top: 1px solid
+    color-mix(in srgb, var(--lb-text-muted) 22%, transparent);
+  font-size: 0.75rem;
+  line-height: 1.6;
+  text-align: center;
+  width: 100%;
+}
+.lb-footer-text { margin-bottom: 0.25rem; }
+a.lb-footer-link { color: inherit; }
+
+/* ── Share block (vCard + wallet exports) ──────────────────────────────── */
+/* Quiet footer-grade utility links, themed from --lb-* tokens so every     */
+/* page theme dresses them. No boxes, no borders — subtle by design.        */
+.lb-share-row { color: var(--lb-text-muted); }
+.lb-share-row:hover { color: var(--lb-text-muted); }
+a.lb-share-link { color: inherit; text-decoration: none; }
+a.lb-share-link:hover { color: var(--lb-text); }
+
 /* ── Link card hover (CSS-based so prefers-reduced-motion can gate it) ──── */
 .lb-link-card { transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease; }
 .lb-link-card:hover { border-color: var(--lb-accent); box-shadow: var(--lb-shadow); }
