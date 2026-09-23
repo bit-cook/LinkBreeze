@@ -68,11 +68,27 @@ function ActivePageResolver({
   }, [pageId, pages]);
 
   const [open, setOpen] = React.useState(false);
-  const [manualReload, setManualReload] = React.useState(0);
-  const reload = React.useCallback(() => setManualReload((k) => k + 1), []);
+  // Last known scroll position inside the preview iframe. Lives here (above
+  // the remount key) so it survives reloads; PhoneFrame keeps it updated and
+  // restores it after each load, so an autosave-triggered refresh no longer
+  // yanks the preview back to the top of the page.
+  const previewScrollRef = React.useRef(0);
+  // Cache-bust state: `t` is the timestamp stamped at reload time (each reload
+  // gets a fresh query string so the iframe can never serve a stale cached
+  // copy of the same URL), `k` counts reloads for the remount key.
+  const [manualReload, setManualReload] = React.useState<{ t: number; k: number } | null>(null);
+  const reload = React.useCallback(
+    () => setManualReload((prev) => ({ t: Date.now(), k: (prev?.k ?? 0) + 1 })),
+    [],
+  );
 
-  const reloadKey = `${activePage?.id ?? 0}-${manualReload}`;
-  const previewUrl = activePage ? `/${activePage.slug}` : null;
+  const bust = manualReload?.t ?? 0;
+  const reloadKey = `${activePage?.id ?? 0}-${manualReload?.k ?? 0}`;
+  const previewUrl = activePage
+    ? bust > 0
+      ? `/${activePage.slug}?v=${bust}`
+      : `/${activePage.slug}`
+    : null;
 
   const contextValue = React.useMemo(
     () => ({ reload, open, setOpen, previewUrl }),
@@ -100,6 +116,7 @@ function ActivePageResolver({
           reloadKey={reloadKey}
           reload={reload}
           onClose={() => setOpen(false)}
+          scrollRef={previewScrollRef}
         />
       )}
     </PreviewContext.Provider>
@@ -136,11 +153,13 @@ function PreviewOverlay({
   reloadKey,
   reload,
   onClose,
+  scrollRef,
 }: {
   src: string;
   reloadKey: string;
   reload: () => void;
   onClose: () => void;
+  scrollRef: React.RefObject<number>;
 }) {
   return (
     <>
@@ -148,7 +167,7 @@ function PreviewOverlay({
       <div className="fixed right-0 top-0 z-30 hidden h-dvh w-[360px] flex-col border-l border-border bg-sidebar/80 backdrop-blur-xl lg:flex xl:w-[400px]">
         <PreviewHeader src={src} reload={reload} onClose={onClose} />
         <div className="flex-1 overflow-hidden">
-          <PhoneFrame key={reloadKey} src={src} />
+          <PhoneFrame key={reloadKey} src={src} scrollRef={scrollRef} />
         </div>
       </div>
 
@@ -156,7 +175,7 @@ function PreviewOverlay({
       <div className="fixed inset-0 z-50 flex flex-col bg-background lg:hidden">
         <PreviewHeader src={src} reload={reload} onClose={onClose} />
         <div className="flex-1 overflow-hidden">
-          <PhoneFrame key={reloadKey} src={src} />
+          <PhoneFrame key={reloadKey} src={src} scrollRef={scrollRef} />
         </div>
       </div>
     </>
@@ -212,13 +231,47 @@ function PreviewHeader({
 
 // ── Phone Frame ─────────────────────────────────────────────────────────
 
-function PhoneFrame({ src }: { src: string }) {
+function PhoneFrame({ src, scrollRef }: { src: string; scrollRef: React.RefObject<number> }) {
   const t = useTranslations("preview");
+  const iframeRef = React.useRef<HTMLIFrameElement>(null);
+
+  // Track the preview's scroll offset so a reload (autosave refreshes the
+  // iframe cache-busted) can restore it instead of snapping back to the top.
+  React.useEffect(() => {
+    const win = iframeRef.current?.contentWindow;
+    if (!win) return;
+    const onScroll = () => {
+      try {
+        scrollRef.current = win.scrollY;
+      } catch {
+        /* cross-origin guard — never fires for same-origin previews */
+      }
+    };
+    win.addEventListener("scroll", onScroll, { passive: true });
+    // Restore after THIS mount's document finishes loading. Slight delay so
+    // images/fonts that affect layout height have begun to settle.
+    const restore = () => {
+      const y = Math.min(scrollRef.current, Math.max(0, (win.document.body?.scrollHeight ?? 0) - win.innerHeight));
+      try {
+        win.scrollTo(0, y);
+      } catch {
+        /* ignore */
+      }
+    };
+    win.addEventListener("load", restore);
+    if (win.document.readyState === "complete") restore();
+    return () => {
+      win.removeEventListener("scroll", onScroll);
+      win.removeEventListener("load", restore);
+    };
+  }, [scrollRef, src]);
+
   return (
     <div className="flex h-full items-center justify-center p-4">
       <div className="relative flex h-full max-h-[720px] aspect-[9/19.5] w-auto overflow-hidden rounded-[2.5rem] border-[8px] border-night-900 bg-night-950 shadow-[0_0_60px_-12px_rgba(124,58,237,0.3)]">
         <div className="absolute left-1/2 top-0 z-10 h-6 w-28 -translate-x-1/2 rounded-b-2xl bg-night-900" />
         <iframe
+          ref={iframeRef}
           src={src}
           title={t("livePreview")}
           className="h-full w-full border-0"

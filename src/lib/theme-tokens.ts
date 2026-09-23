@@ -72,6 +72,13 @@ export interface ThemeInput {
   backgroundValue?: string | null;
   backgroundAngle?: string | null;
   backgroundImageUrl?: string | null;
+  /**
+   * Per-upload override support (Spec: Image-Positioning): the public page
+   * may re-resolve fit/position with page-level metadata before calling the
+   * resolvers. Optional — ThemeBackgroundInput remains the canonical carrier.
+   */
+  backgroundFit?: string | null;
+  backgroundPosition?: string | null;
   overlayColor?: string | null;
   overlayOpacity?: string | null;
 
@@ -640,6 +647,14 @@ export function mediaBackgroundCss(theme: ThemeBackgroundInput): string {
   const url = `url('${theme.backgroundImageUrl}')`;
   const fit = theme.backgroundFit || "cover";
   const pos = theme.backgroundPosition || "50% 50%";
+  // Optional per-upload zoom (Spec: Image-Positioning): scales the sized
+  // layer; 1/undefined = untouched. Composes with cover/contain by
+  // multiplying the size slot.
+  const zoomRaw = (theme as { backgroundZoom?: number | null }).backgroundZoom;
+  const zoom =
+    typeof zoomRaw === "number" && !Number.isNaN(zoomRaw)
+      ? Math.min(3, Math.max(1, zoomRaw))
+      : 1;
   // Fallback color sits behind the media — matters for contain (letterbox
   // bars) and transparent PNGs. Uses the theme's first bg color, else night.
   const fallback =
@@ -648,8 +663,17 @@ export function mediaBackgroundCss(theme: ThemeBackgroundInput): string {
     // repeat with natural size; position pins the pattern origin
     return `${url} ${pos}/auto repeat ${fallback}`;
   }
-  const size = fit === "contain" ? "contain" : "cover";
-  return `${url} ${pos}/${size} no-repeat ${fallback}`;
+  if (fit === "contain") {
+    // background-size can't mix the contain keyword with a factor; emulate
+    // zoom with percentage sizing ("contain" ≈ fit the larger dimension
+    // inside — approximated by 100% auto scaled by the zoom factor).
+    return zoom > 1
+      ? `${url} ${pos}/auto ${zoom * 100}% no-repeat ${fallback}`
+      : `${url} ${pos}/contain no-repeat ${fallback}`;
+  }
+  return zoom > 1
+    ? `${url} ${pos}/${100 * zoom}% auto no-repeat ${fallback}`
+    : `${url} ${pos}/cover no-repeat ${fallback}`;
 }
 
 /**

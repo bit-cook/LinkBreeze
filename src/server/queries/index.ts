@@ -192,6 +192,19 @@ export interface UpdatePageInput {
   faviconUrl?: string | null;
   privacyPolicy?: string;
   qrSettings?: string | null;
+  // Per-upload image adjustments (Spec: Image-Positioning) — NULL resets.
+  avatarFit?: string | null;
+  avatarPosX?: number | null;
+  avatarPosY?: number | null;
+  avatarZoom?: number | null;
+  bannerFit?: string | null;
+  bannerPosX?: number | null;
+  bannerPosY?: number | null;
+  bannerZoom?: number | null;
+  backgroundFitOverride?: string | null;
+  backgroundPosX?: number | null;
+  backgroundPosY?: number | null;
+  backgroundZoom?: number | null;
 }
 
 export async function updatePage(id: number, data: UpdatePageInput): Promise<void> {

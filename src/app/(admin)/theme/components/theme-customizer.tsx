@@ -166,6 +166,11 @@ export function ThemeCustomizer({
   themes = [],
   onFontUploaded,
   onFontDeleted,
+  onAutoSaveState,
+  onAutoSaveFlush,
+  onAutoSaveBlur,
+  bgAdjustment,
+  onBgAdjustment,
 }: {
   active: ThemeRow;
   onCustomize: (formData: FormData) => void;
@@ -181,12 +186,32 @@ export function ThemeCustomizer({
   /** Refresh after upload/delete so chips + usage counts stay accurate. */
   onFontUploaded?: () => void;
   onFontDeleted?: () => void;
+  /**
+   * Debounced autosave (Spec B): called on every controlled-state change with
+   * the full form snapshot; the parent debounce-flushes it as a normal save.
+   * Undefined for preset themes (fork dialog stays the only save path).
+   */
+  onAutoSaveState?: (formData: FormData) => void;
+  /** Called after an explicit save with the saved snapshot (autosave baseline). */
+  onAutoSaveFlush?: (formData: FormData) => void;
+  /** Called when the customizer area loses focus (flush pending autosave). */
+  onAutoSaveBlur?: () => void;
+  /** Per-upload background adjustment metadata from the page row (nullable). */
+  bgAdjustment?: { fit: string | null; posX: number | null; posY: number | null; zoom: number | null } | null;
+  /** Persist a background adjustment change (or null to reset) for the page. */
+  onBgAdjustment?: (v: { fit: "cover" | "contain"; posX: number; posY: number; zoom: number } | null) => void;
 }) {
   const t = useTranslations("theme");
   const [state, setState] = React.useState<CustomizerState>(() => stateFromTheme(active));
   const [forkOpen, setForkOpen] = React.useState(false);
   const [forkName, setForkName] = React.useState("");
   const [tab, setTab] = React.useState<TabId>("background");
+  // Stable local aliases for the autosave callbacks (hooks below depend on
+  // them; TS narrows the optional props once here).
+  const autoSaveStateCb = onAutoSaveState;
+  const autoSaveFlushCb = onAutoSaveFlush;
+  const autoSaveBlurCb = onAutoSaveBlur;
+  const handleBgAdjustment = onBgAdjustment;
 
   // Remount fields on theme switch (controlled state re-initialises).
   const [themeKey, setThemeKey] = React.useState(active.id);
@@ -195,7 +220,21 @@ export function ThemeCustomizer({
     setState(stateFromTheme(active));
   }
 
-  const set = (patch: Partial<CustomizerState>) => setState((s) => ({ ...s, ...patch }));
+  const set = (patch: Partial<CustomizerState>) => {
+    setState((s) => {
+      const next = { ...s, ...patch };
+      // Debounced autosave (Spec B): snapshot the new controlled state as a
+      // FormData on every change. The parent decides whether to schedule
+      // (custom themes) or ignore (presets keep the explicit fork-save).
+      if (autoSaveStateCb) {
+        const fd = new FormData();
+        for (const [k, v] of Object.entries(next)) fd.set(k, v);
+        fd.set("themeId", String(active.id));
+        autoSaveStateCb(fd);
+      }
+      return next;
+    });
+  };
 
   const dirty = React.useMemo(() => {
     const initial = stateFromTheme(active);
@@ -214,7 +253,11 @@ export function ThemeCustomizer({
   const handleSave = () => {
     if (!dirty) return;
     if (isCustom) {
-      onCustomize(formData());
+      const fd = formData();
+      onCustomize(fd);
+      // Explicit save becomes the autosave baseline — the next scheduled
+      // flush skips re-sending identical state.
+      autoSaveFlushCb?.(fd);
     } else {
       setForkName(`${active.name} (copy)`);
       setForkOpen(true);
@@ -223,7 +266,10 @@ export function ThemeCustomizer({
 
   return (
     <>
-      <Card className="w-full">
+      <Card
+        className="w-full"
+        onBlurCapture={() => autoSaveBlurCb?.()}
+      >
         <CardHeader className="pb-4">
           <CardTitle>{t("customiseTitle", { name: active.name })}</CardTitle>
           <CardDescription>{t("everyChangePreviewsLiveChangesApplyOnSav")}</CardDescription>
@@ -255,7 +301,12 @@ export function ThemeCustomizer({
           <div className="min-w-0 flex-1">
             {tab === "background" ? (
               <>
-                <BackgroundSection s={state} set={set} />
+                <BackgroundSection
+                  s={state}
+                  set={set}
+                  bgAdjustment={bgAdjustment}
+                  onBgAdjustment={handleBgAdjustment}
+                />
                 <div className="mt-6">
                   <ColorsSection s={state} set={set} />
                 </div>

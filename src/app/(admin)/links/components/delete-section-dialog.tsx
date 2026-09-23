@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { deleteSection } from "@/server/actions/sections";
 import type { LinkSectionRow } from "@/server/queries";
+import { useSavedAction } from "@/hooks/use-saved-action";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,13 +30,14 @@ export function DeleteSectionDialog({ section, open, onOpenChange }: DeleteSecti
   const t = useTranslations("linksPage");
   const [pending, startTransition] = React.useTransition();
   const router = useRouter();
+  const savedAction = useSavedAction();
 
   const handleDelete = () => {
     if (!section) return;
     const formData = new FormData();
     formData.set("id", String(section.id));
     startTransition(async () => {
-      const result = await deleteSection(formData);
+      const result = await savedAction.run(deleteSection, formData);
       if (!result.success) return;
       router.refresh();
       onOpenChange(false);

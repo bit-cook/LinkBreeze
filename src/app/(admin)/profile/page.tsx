@@ -42,6 +42,14 @@ export default async function ProfilePage({
               avatarUrl: activePage.avatarUrl ?? "",
               bannerUrl: activePage.bannerUrl ?? "",
               socialLinks,
+              avatarFit: activePage.avatarFit,
+              avatarPosX: activePage.avatarPosX,
+              avatarPosY: activePage.avatarPosY,
+              avatarZoom: activePage.avatarZoom,
+              bannerFit: activePage.bannerFit,
+              bannerPosX: activePage.bannerPosX,
+              bannerPosY: activePage.bannerPosY,
+              bannerZoom: activePage.bannerZoom,
             }
           : null
       }

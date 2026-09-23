@@ -19,11 +19,31 @@ import {
  * `type="text/plain"` noscript-safe degradation: browsers without JS simply
  * keep the video.
  */
-export function VideoBackground({ theme }: { theme: ThemeBackgroundInput }) {
+export function VideoBackground({
+  theme,
+  adjustment,
+}: {
+  theme: ThemeBackgroundInput;
+  /** Per-upload override (Spec: Image-Positioning): fit + focus; no zoom for video. */
+  adjustment?: { fit?: string | null; posX?: number | null; posY?: number | null } | null;
+}) {
   const src = theme.backgroundImageUrl;
   if (!src) return null;
 
   const overlay = buildOverlay(theme);
+  // Page-level override wins over the theme's fit/position; video never zooms.
+  const fit =
+    adjustment?.fit === "contain"
+      ? "contain"
+      : adjustment?.fit === "cover"
+        ? "cover"
+        : mediaObjectFit(theme);
+  const x = typeof adjustment?.posX === "number" ? adjustment.posX : null;
+  const y = typeof adjustment?.posY === "number" ? adjustment.posY : null;
+  const position =
+    x !== null || y !== null
+      ? `${(x ?? 0.5) * 100}% ${(y ?? 0.5) * 100}%`
+      : mediaObjectPosition(theme);
 
   return (
     <div
@@ -54,8 +74,8 @@ export function VideoBackground({ theme }: { theme: ThemeBackgroundInput }) {
           inset: 0,
           width: "100%",
           height: "100%",
-          objectFit: mediaObjectFit(theme) as React.CSSProperties["objectFit"],
-          objectPosition: mediaObjectPosition(theme),
+          objectFit: fit as React.CSSProperties["objectFit"],
+          objectPosition: position,
         }}
       />
       {overlay}

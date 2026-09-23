@@ -176,6 +176,13 @@
       "when": 1966777700400,
       "tag": "0024_share_enabled",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "6",
+      "when": 1966777700500,
+      "tag": "0025_image_adjustments",
+      "breakpoints": true
     }
   ]
 }

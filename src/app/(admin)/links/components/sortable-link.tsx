@@ -27,7 +27,7 @@ import { useTranslations } from "next-intl";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { usePreview } from "@/components/admin/PreviewPane";
+import { useSavedAction } from "@/hooks/use-saved-action";
 
 export interface SortableLinkProps {
   link: LinkRow;
@@ -37,7 +37,6 @@ export interface SortableLinkProps {
 
 export function SortableLink({ link, onEdit, onDelete }: SortableLinkProps) {
   const t = useTranslations("linksPage");
-  const { reload: reloadPreview } = usePreview();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: link.id });
   const router = useRouter();
@@ -90,13 +89,13 @@ export function SortableLink({ link, onEdit, onDelete }: SortableLinkProps) {
   const Icon = displayIcon;
 
   const [toggling, setToggling] = React.useState(false);
+  const savedAction = useSavedAction();
 
   const handleToggle = async () => {
     setToggling(true);
     try {
-      await toggleLink(link.id);
+      await savedAction.run(toggleLink, link.id);
       router.refresh();
-      reloadPreview();
     } finally {
       setToggling(false);
     }

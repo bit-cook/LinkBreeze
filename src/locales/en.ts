@@ -712,6 +712,16 @@ const en = {
       uploadFavicon: "Upload favicon",
       uploading: "Uploading…",
       save: "Save appearance",
+      // Image position picker (Spec: Image-Positioning)
+      positionPickerAria: "Image position: drag to set the visible part",
+      imageFitAria: "Image fit",
+      fitCover: "Cover",
+      fitContain: "Contain",
+      zoomLabel: "Zoom",
+      zoomWheelHint: "Tip: scroll over the image to zoom.",
+      resetAdjustments: "Reset position",
+      adjustPosition: "Adjust",
+      positionTitle: "Image position",
     },
 
     security: {

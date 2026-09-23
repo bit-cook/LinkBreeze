@@ -69,6 +69,12 @@ export default async function ThemePage({
         pageId={activePage?.id}
         pageThemeId={activePage?.themeId ?? null}
         customFonts={customFonts}
+        pageBgAdjustment={{
+          fit: activePage?.backgroundFitOverride ?? null,
+          posX: activePage?.backgroundPosX ?? null,
+          posY: activePage?.backgroundPosY ?? null,
+          zoom: activePage?.backgroundZoom ?? null,
+        }}
       />
     </div>
   );

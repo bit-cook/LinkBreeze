@@ -225,7 +225,34 @@ export default async function PublicPage({ params }: PageProps) {
 
   const useAurora = isAnimatedAurora(themeInput);
   const useVideo = themeInput.backgroundType === "video" && !!themeInput.backgroundImageUrl;
-  const background = resolveBackground(themeInput);
+  // Per-upload background adjustment override (Spec: Image-Positioning).
+  // Zoom applies to IMAGE backgrounds only; video gets fit + position via
+  // the VideoBackground prop and never scales.
+  const bgAdjustment = {
+    fit: page.backgroundFitOverride,
+    posX: page.backgroundPosX,
+    posY: page.backgroundPosY,
+    zoom: page.backgroundZoom,
+  };
+  const themeInputWithBg: ThemeInput =
+    useVideo || (themeInput.backgroundType !== "image" && themeInput.backgroundType !== "gif")
+      ? themeInput
+      : {
+          ...themeInput,
+          backgroundFit:
+            bgAdjustment.fit === "contain" || bgAdjustment.fit === "cover" || bgAdjustment.fit === "tile"
+              ? bgAdjustment.fit
+              : themeInput.backgroundFit ?? null,
+          backgroundPosition:
+            typeof bgAdjustment.posX === "number" || typeof bgAdjustment.posY === "number"
+              ? `${(bgAdjustment.posX ?? 0.5) * 100}% ${(bgAdjustment.posY ?? 0.5) * 100}%`
+              : themeInput.backgroundPosition ?? null,
+          // Zoom rides as an extra field consumed by mediaBackgroundCss.
+          ...(typeof bgAdjustment.zoom === "number" && bgAdjustment.zoom > 1
+            ? { backgroundZoom: bgAdjustment.zoom }
+            : {}),
+        } as ThemeInput;
+  const background = resolveBackground(themeInputWithBg);
 
   const themeStyleBlock = buildThemeStyleBlock(themeInput, {
     customFonts: customFontLookup,
@@ -240,6 +267,15 @@ export default async function PublicPage({ params }: PageProps) {
     bannerUrl: page.bannerUrl,
     badgeText: page.badgeText,
     socialLinks: page.socialLinks,
+    // Per-upload image adjustments (Spec: Image-Positioning)
+    avatarFit: page.avatarFit,
+    avatarPosX: page.avatarPosX,
+    avatarPosY: page.avatarPosY,
+    avatarZoom: page.avatarZoom,
+    bannerFit: page.bannerFit,
+    bannerPosX: page.bannerPosX,
+    bannerPosY: page.bannerPosY,
+    bannerZoom: page.bannerZoom,
   };
 
   // Share/wallet exports — opt-in per page (share_enabled, default off).
@@ -274,7 +310,16 @@ export default async function PublicPage({ params }: PageProps) {
   return (
     <>
       {useAurora ? <AuroraBackground /> : null}
-      {useVideo ? <VideoBackground theme={themeInput} /> : null}
+      {useVideo ? (
+        <VideoBackground
+          theme={themeInput}
+          adjustment={{
+            fit: page.backgroundFitOverride,
+            posX: page.backgroundPosX,
+            posY: page.backgroundPosY,
+          }}
+        />
+      ) : null}
       {truthy(themeInput.noise) ? <div aria-hidden className="lb-noise" /> : null}
       {page.analyticsScript ? (
         <div dangerouslySetInnerHTML={{ __html: page.analyticsScript }} />

@@ -119,6 +119,7 @@ export default async function SettingsPage({
             <div className="flex flex-col gap-4">
               <AppearanceTab
                 pageId={activePage?.id}
+                slug={slug}
                 customCss={activePage?.customCss || ""}
                 faviconUrl={activePage?.faviconUrl || ""}
                 themes={themes}

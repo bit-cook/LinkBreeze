@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
 // ─── Users ─────────────────────────────────────────────
@@ -64,6 +64,24 @@ export const pages = sqliteTable("pages", {
   qrSettings: text("qr_settings"),
   // Share & wallet exports block on the public page. NULL = off (opt-in).
   shareEnabled: integer("share_enabled", { mode: "boolean" }),
+  // ─── Image adjustments (per-upload metadata, Spec: Image-Positioning) ───
+  // All nullable; NULL = current rendering (object-fit cover, centered, no
+  // zoom). Belongs to the UPLOAD, not theme knobs. avatar/banner: focus
+  // point for the cover crop + zoom multiplier (1–3). background_*:
+  // per-upload override of the theme's background fit/position; zoom for
+  // image backgrounds only (video: fit + position only).
+  avatarFit: text("avatar_fit"), // 'cover' | 'contain'
+  avatarPosX: real("avatar_pos_x"), // 0–1 focus point
+  avatarPosY: real("avatar_pos_y"),
+  avatarZoom: real("avatar_zoom"), // 1–3
+  bannerFit: text("banner_fit"),
+  bannerPosX: real("banner_pos_x"),
+  bannerPosY: real("banner_pos_y"),
+  bannerZoom: real("banner_zoom"),
+  backgroundFitOverride: text("background_fit_override"), // 'cover' | 'contain' | NULL (= theme)
+  backgroundPosX: real("background_pos_x"),
+  backgroundPosY: real("background_pos_y"),
+  backgroundZoom: real("background_zoom"),
 });
 
 // ─── Link sections (1.3) ──────────────────────────────

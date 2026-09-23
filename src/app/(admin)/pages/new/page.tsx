@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus } from "lucide-react";
 import { createPageAction } from "@/server/actions/pages";
+import { useSavedAction } from "@/hooks/use-saved-action";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,13 +26,14 @@ export default function NewPageForm() {
   const t = useTranslations("pages");
   const tErr = useTranslations("errors");
   const router = useRouter();
+  const savedAction = useSavedAction();
   const [pending, startTransition] = React.useTransition();
   const [error, setError] = React.useState<string | null>(null);
 
   const handleSubmit = (formData: FormData) => {
     setError(null);
     startTransition(async () => {
-      const res = await createPageAction(formData);
+      const res = await savedAction.run(createPageAction, formData);
       if (res.success) {
         router.push(`/links?page=${res.pageId}`);
       } else {

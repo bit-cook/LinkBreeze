@@ -4,11 +4,12 @@ import * as React from "react";
 import { localizeActionError } from "@/lib/action-error-i18n";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
-import { Trash2, Save, Upload } from "lucide-react";
+import { Trash2, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { updateProfile } from "@/server/actions/profile";
 import { updatePageAction } from "@/server/actions/pages";
 import { uploadAvatar } from "@/server/actions/uploads";
+import { useSavedAction, createAutosaver, useAutosavedForm } from "@/hooks/use-saved-action";
 import {
   SUPPORTED_PLATFORMS,
   getPlatformLabel,
@@ -23,12 +24,17 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { usePreview } from "@/components/admin/PreviewPane";
+import {
+  ImagePositionPicker,
+  pickerValueFrom,
+  pickerToFormFields,
+  type ImagePositionPickerValue,
+} from "@/components/admin/image-position-picker";
 
 // ── Platform icon chip ───────────────────────────────────────────────────
 
@@ -50,26 +56,94 @@ interface ProfileFormProps {
     avatarUrl: string;
     bannerUrl?: string | null;
     socialLinks: SocialLink[];
+    // Per-upload image adjustment metadata (Spec: Image-Positioning)
+    avatarFit?: string | null;
+    avatarPosX?: number | null;
+    avatarPosY?: number | null;
+    avatarZoom?: number | null;
+    bannerFit?: string | null;
+    bannerPosX?: number | null;
+    bannerPosY?: number | null;
+    bannerZoom?: number | null;
   } | null;
   pageId?: number;
 }
 
 export function ProfileForm({ profile, pageId }: ProfileFormProps) {
   const t = useTranslations("profile");
+  const tA = useTranslations("settings.appearance");
   const tErr = useTranslations("errors");
-  const tCommon = useTranslations("common");
   const { reload: reloadPreview } = usePreview();
+  const savedAction = useSavedAction();
   const [socialLinks, setSocialLinks] = React.useState<SocialLink[]>(
     profile?.socialLinks ?? [],
   );
-  const [pending, startTransition] = React.useTransition();
-  const [saved, setSaved] = React.useState(false);
+  const startTransition = (fn: () => Promise<void>) => void fn();
   const [avatarUrl, setAvatarUrl] = React.useState(profile?.avatarUrl ?? "");
   const [bannerUrl, setBannerUrl] = React.useState(profile?.bannerUrl ?? "");
   const [uploading, setUploading] = React.useState(false);
   const [uploadError, setUploadError] = React.useState<string | null>(null);
   const [bannerUploading, setBannerUploading] = React.useState(false);
   const [bannerError, setBannerError] = React.useState<string | null>(null);
+
+  // ── Debounced autosave (Spec B, extended) ──
+  // Identity fields AND social links autosave; the flush reads the live
+  // form values and the current socialLinks state (fresh closure kept by
+  // useAutosavedForm), so both cards save through the same debounced path
+  // as an explicit Save.
+  const socialLinksRef = React.useRef(socialLinks);
+  React.useEffect(() => {
+    socialLinksRef.current = socialLinks;
+  }, [socialLinks]);
+
+  const persistProfile = React.useCallback(
+    (formData: FormData) => {
+      const cleaned = socialLinksRef.current.filter((s) => s.url.trim().length > 0);
+      formData.set("socialLinks", JSON.stringify(cleaned));
+      if (pageId) {
+        formData.set("pageId", String(pageId));
+        formData.set("title", formData.get("displayName") as string);
+        void savedAction.run(updatePageAction, formData);
+      } else {
+        void savedAction.run(updateProfile, formData);
+      }
+    },
+    [pageId, savedAction],
+  );
+
+  const { formRef, schedule, flushNow } = useAutosavedForm(persistProfile);
+
+  // ── Image position pickers (Spec: Image-Positioning) ──
+  // Controlled state: every drag/slider move re-renders the preview; the
+  // debounced autosaver persists ~600ms after the last movement so a drag
+  // costs ONE server action, not one per pointermove.
+  const [avatarAdj, setAvatarAdj] = React.useState<ImagePositionPickerValue>(() =>
+    pickerValueFrom(profile?.avatarFit, profile?.avatarPosX, profile?.avatarPosY, profile?.avatarZoom),
+  );
+  const [bannerAdj, setBannerAdj] = React.useState<ImagePositionPickerValue>(() =>
+    pickerValueFrom(profile?.bannerFit, profile?.bannerPosX, profile?.bannerPosY, profile?.bannerZoom),
+  );
+  const [avatarAdjOpen, setAvatarAdjOpen] = React.useState(false);
+  const [bannerAdjOpen, setBannerAdjOpen] = React.useState(false);
+  const adjAutosave = React.useMemo(
+    () =>
+      createAutosaver((fd: FormData) => {
+        void savedAction.run(updatePageAction, fd);
+      }, 600),
+    // run is a stable useCallback — depending on `savedAction` itself (a new
+    // object each render) would recreate (and cancel) the autosaver mid-drag.
+    [savedAction],
+  );
+  React.useEffect(() => () => adjAutosave.cancel(), [adjAutosave]);
+  const saveAdjustments = (surface: "avatar" | "banner", v: ImagePositionPickerValue) => {
+    if (!pageId) return; // legacy singleton profile has no adjustment columns
+    const fd = new FormData();
+    fd.set("pageId", String(pageId));
+    for (const [k, val] of Object.entries(pickerToFormFields(surface, v))) {
+      fd.set(k, val);
+    }
+    adjAutosave.schedule(fd);
+  };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -82,6 +156,10 @@ export function ProfileForm({ profile, pageId }: ProfileFormProps) {
       const res = await uploadAvatar(fd);
       if (res.success) {
         setAvatarUrl(res.url);
+        // A fresh upload is exactly when positioning matters — open the
+        // tool immediately (auto-open on upload) and reset stale metadata.
+        setAvatarAdj(pickerValueFrom(null, null, null, null));
+        setAvatarAdjOpen(true);
         reloadPreview();
       } else {
         setUploadError(localizeActionError(tErr, res.error));
@@ -105,6 +183,8 @@ export function ProfileForm({ profile, pageId }: ProfileFormProps) {
       const res = await uploadAvatar(fd);
       if (res.success) {
         setBannerUrl(res.url);
+        setBannerAdj(pickerValueFrom(null, null, null, null));
+        setBannerAdjOpen(true);
         reloadPreview();
       } else {
         setBannerError(localizeActionError(tErr, res.error));
@@ -119,16 +199,21 @@ export function ProfileForm({ profile, pageId }: ProfileFormProps) {
 
   const addSocialPlatform = (platform: SocialPlatform) => {
     setSocialLinks((prev) => [...prev, { platform, url: "" }]);
+    // Programmatic change: the new chip exists in state but not in the DOM
+    // yet — schedule from the next tick so the flush reads the rendered row.
+    requestAnimationFrame(schedule);
   };
 
   const updateSocial = (index: number, field: keyof SocialLink, value: string) => {
     setSocialLinks((prev) =>
       prev.map((s, i) => (i === index ? { ...s, [field]: value } : s)),
     );
+    schedule(); // social links autosave
   };
 
   const removeSocial = (index: number) => {
     setSocialLinks((prev) => prev.filter((_, i) => i !== index));
+    requestAnimationFrame(schedule);
   };
 
   const handleSubmit = (formData: FormData) => {
@@ -141,19 +226,13 @@ export function ProfileForm({ profile, pageId }: ProfileFormProps) {
       // Map profile field names to page field names.
       formData.set("title", formData.get("displayName") as string);
       startTransition(async () => {
-        await updatePageAction(formData);
-        setSaved(true);
-        reloadPreview();
-        setTimeout(() => setSaved(false), 2000);
+        await savedAction.run(updatePageAction, formData);
       });
       return;
     }
 
     startTransition(async () => {
-      await updateProfile(formData);
-      setSaved(true);
-      reloadPreview();
-      setTimeout(() => setSaved(false), 2000);
+      await savedAction.run(updateProfile, formData);
     });
   };
 
@@ -164,7 +243,12 @@ export function ProfileForm({ profile, pageId }: ProfileFormProps) {
         <p className="text-sm text-muted-foreground">{t("thisInformationAppearsOnYourPublicPage")}</p>
       </div>
 
-      <form action={handleSubmit} className="flex flex-col gap-6">
+      <form
+        ref={formRef}
+        action={handleSubmit}
+        onBlurCapture={() => flushNow()}
+        className="flex flex-col gap-6"
+      >
         <Card>
           <CardHeader>
             <CardTitle>{t("details")}</CardTitle>
@@ -215,7 +299,29 @@ export function ProfileForm({ profile, pageId }: ProfileFormProps) {
                   {uploadError ? (
                     <span className="text-xs text-destructive">{uploadError}</span>
                   ) : null}
+                  {avatarUrl && pageId ? (
+                    <button
+                      type="button"
+                      onClick={() => setAvatarAdjOpen((v) => !v)}
+                      className="text-sm font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                    >
+                      {tA("adjustPosition")}
+                    </button>
+                  ) : null}
                 </div>
+                {avatarUrl && pageId && avatarAdjOpen ? (
+                  <div className="mt-3 rounded-xl border border-border p-3">
+                    <ImagePositionPicker
+                      surface="avatar"
+                      src={avatarUrl}
+                      value={avatarAdj}
+                      onChange={(v) => {
+                        setAvatarAdj(v);
+                        saveAdjustments("avatar", v);
+                      }}
+                    />
+                  </div>
+                ) : null}
               </div>
             </div>
 
@@ -248,7 +354,29 @@ export function ProfileForm({ profile, pageId }: ProfileFormProps) {
               {bannerError ? (
                 <span className="text-xs text-destructive">{bannerError}</span>
               ) : null}
+              {bannerUrl && pageId ? (
+                <button
+                  type="button"
+                  onClick={() => setBannerAdjOpen((v) => !v)}
+                  className="text-sm font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+                >
+                  {tA("adjustPosition")}
+                </button>
+              ) : null}
             </div>
+            {bannerUrl && pageId && bannerAdjOpen ? (
+              <div className="rounded-xl border border-border p-3">
+                <ImagePositionPicker
+                  surface="banner"
+                  src={bannerUrl}
+                  value={bannerAdj}
+                  onChange={(v) => {
+                    setBannerAdj(v);
+                    saveAdjustments("banner", v);
+                  }}
+                />
+              </div>
+            ) : null}
 
             <FormField label={t("displayName")} htmlFor="displayName" required>
               <Input
@@ -258,6 +386,7 @@ export function ProfileForm({ profile, pageId }: ProfileFormProps) {
                 required
                 maxLength={80}
                 placeholder={t("displayNamePlaceholder")}
+                onChange={() => schedule()}
               />
             </FormField>
 
@@ -268,6 +397,7 @@ export function ProfileForm({ profile, pageId }: ProfileFormProps) {
                 defaultValue={profile?.bio ?? ""}
                 maxLength={300}
                 placeholder={t("bioPlaceholder")}
+                onChange={() => schedule()}
               />
             </FormField>
 
@@ -278,6 +408,7 @@ export function ProfileForm({ profile, pageId }: ProfileFormProps) {
                 defaultValue={profile?.badgeText ?? ""}
                 maxLength={40}
                 placeholder={t("availableForWork")}
+                onChange={() => schedule()}
               />
             </FormField>
           </CardContent>
@@ -344,15 +475,6 @@ export function ProfileForm({ profile, pageId }: ProfileFormProps) {
               })}
             </div>
           </CardContent>
-          <CardFooter className="gap-3">
-            <Button type="submit" disabled={pending}>
-              <Save className="size-4" />
-              {pending ? tCommon("saving") : t("saveProfile")}
-            </Button>
-            {saved ? (
-              <span className="text-sm text-muted-foreground">{t("savedToast")}</span>
-            ) : null}
-          </CardFooter>
         </Card>
       </form>
     </div>

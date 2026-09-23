@@ -10,6 +10,7 @@ import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/ui/form-field";
 import { IconPicker } from "./icon-picker";
+import { useSavedAction } from "@/hooks/use-saved-action";
 import {
   Dialog,
   DialogContent,
@@ -36,6 +37,7 @@ export function SectionDialog({ open, onOpenChange, editing, pageId }: SectionDi
   const [pending, startTransition] = React.useTransition();
   const formRef = React.useRef<HTMLFormElement>(null);
   const router = useRouter();
+  const savedAction = useSavedAction();
   // Icon picker value — dashed lucide name or "". Mirrored into a hidden
   // input so the server action receives it via FormData.
   const [icon, setIcon] = React.useState(
@@ -57,7 +59,7 @@ export function SectionDialog({ open, onOpenChange, editing, pageId }: SectionDi
 
     const formData = new FormData(form);
     startTransition(async () => {
-      const result = await saveSection(formData);
+      const result = await savedAction.run(saveSection, formData);
       if (!result.success) return;
       router.refresh();
       onOpenChange(false);

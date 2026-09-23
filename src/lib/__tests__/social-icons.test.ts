@@ -9,8 +9,13 @@ import {
 } from "@/lib/social-icons";
 
 describe("SUPPORTED_PLATFORMS", () => {
-  it("contains all 55 platforms", () => {
-    expect(SUPPORTED_PLATFORMS).toHaveLength(55);
+  it("contains all 54 platforms", () => {
+    expect(SUPPORTED_PLATFORMS).toHaveLength(54);
+  });
+
+  it("does not list `twitter` separately (alias of `x` — same X logo)", () => {
+    expect(SUPPORTED_PLATFORMS).not.toContain("twitter");
+    expect(SUPPORTED_PLATFORMS).toContain("x");
   });
 });
 
@@ -42,9 +47,9 @@ describe("detectPlatform", () => {
     expect(detectPlatform("https://youtu.be/abc123")).toBe("youtube");
   });
 
-  it("detects Twitter / X", () => {
-    expect(detectPlatform("https://twitter.com/user")).toBe("twitter");
-    expect(detectPlatform("https://x.com/user")).toBe("twitter");
+  it("detects Twitter / X (both map to the single `x` platform)", () => {
+    expect(detectPlatform("https://twitter.com/user")).toBe("x");
+    expect(detectPlatform("https://x.com/user")).toBe("x");
   });
 
   it("detects GitHub", () => {
@@ -87,7 +92,7 @@ describe("detectPlatform", () => {
 describe("getSocialIconSvg", () => {
   it("returns SVG markup for each platform", () => {
     const platforms: SocialPlatform[] = [
-      "instagram", "tiktok", "youtube", "twitter", "github",
+      "instagram", "tiktok", "youtube", "x", "github",
       "discord", "twitch", "spotify", "linkedin", "telegram",
       "whatsapp", "email",
     ];

@@ -13,6 +13,7 @@ import {
   FontUploadField,
 } from "./field-controls";
 import { FocalPointPicker, FitPicker } from "./focal-point-picker";
+import { ImagePositionPicker, pickerValueFrom } from "@/components/admin/image-position-picker";
 import type { CustomizerState } from "./theme-customizer";
 import { buildFontFaceCss, type CustomFontMeta } from "@/lib/custom-fonts";
 import {
@@ -36,7 +37,18 @@ import {
 
 export type SetFn = (patch: Partial<CustomizerState>) => void;
 
-export function BackgroundSection({ s, set }: { s: CustomizerState; set: SetFn }) {
+export function BackgroundSection({
+  s,
+  set,
+  bgAdjustment,
+  onBgAdjustment,
+}: {
+  s: CustomizerState;
+  set: SetFn;
+  /** Per-upload background adjustment (Spec: Image-Positioning) — page-level, null when unset. */
+  bgAdjustment?: { fit: string | null; posX: number | null; posY: number | null; zoom: number | null } | null;
+  onBgAdjustment?: (v: { fit: "cover" | "contain"; posX: number; posY: number; zoom: number } | null) => void;
+}) {
   const t = useTranslations("theme");
   const type = s.backgroundType;
   const showAngle =
@@ -149,6 +161,24 @@ export function BackgroundSection({ s, set }: { s: CustomizerState; set: SetFn }
           ) : (
             <p className="text-[11px] text-muted-foreground">{t("uploadMediaOrPasteAUrlToUnlockDisplayCon")}</p>
           )}
+
+          {/* Per-upload position tool (Spec: Image-Positioning) — page-level
+              override of the theme fit/position above. Image: full tool
+              (drag + zoom + fit); video: fit + position only. */}
+          {s.backgroundImageUrl && onBgAdjustment ? (
+            <div className="rounded-xl border border-border p-3">
+              <p className="mb-2 text-xs font-medium text-muted-foreground">
+                Per-upload position
+              </p>
+              <ImagePositionPicker
+                surface="background"
+                src={s.backgroundImageUrl}
+                isVideo={isVideo}
+                value={pickerValueFrom(bgAdjustment?.fit, bgAdjustment?.posX, bgAdjustment?.posY, bgAdjustment?.zoom)}
+                onChange={(v) => onBgAdjustment(v)}
+              />
+            </div>
+          ) : null}
         </div>
       ) : null}
 

@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/ui/form-field";
+import { useSavedAction } from "@/hooks/use-saved-action";
 
 interface MigrationWizardProps {
   pageId: number;
@@ -36,6 +37,7 @@ export function MigrationWizard({ pageId }: MigrationWizardProps) {
   const t = useTranslations("migration");
   const tErr = useTranslations("errors");
   const router = useRouter();
+  const savedAction = useSavedAction();
   const [step, setStep] = React.useState<Step>("input");
   const [source, setSource] = React.useState<Source>("url");
   const [url, setUrl] = React.useState("");
@@ -89,7 +91,8 @@ export function MigrationWizard({ pageId }: MigrationWizardProps) {
       formData.set("links", JSON.stringify(links));
       formData.set("socialLinks", JSON.stringify(socialLinks));
 
-      const res = await confirmImport(null, formData);
+      // confirmImport has a useActionState signature (prevState, formData).
+      const res = await savedAction.run(confirmImport, null, formData);
 
       if (!res.success) {
         setError(res.error ? localizeActionError(tErr, res.error) : t("importFailed"));

@@ -2,11 +2,30 @@ import Image from "next/image";
 import type { ProfileRow } from "@/server/queries";
 import { revealAnimationStyle } from "@/lib/theme-tokens";
 import type { ThemeInput } from "@/lib/theme-tokens";
+import { imageAdjustmentStyle } from "@/lib/image-adjustments";
+import type { ImageAdjustment } from "@/lib/image-adjustments";
 
 interface ProfileHeaderProps {
-  profile: ProfileRow & { bannerUrl?: string | null };
+  profile: ProfileRow & { bannerUrl?: string | null } & Record<string, unknown>;
   /** Theme tokens for avatar shape/border/float + text animation. */
   theme?: ThemeInput | null;
+}
+
+/**
+ * Pick the per-upload adjustment metadata off the page row. The public page
+ * passes avatar/banner/background columns; the legacy profile row has none
+ * (undefined → defaults, pre-spec rendering).
+ */
+function adjustment(
+  profile: ProfileHeaderProps["profile"],
+  prefix: "avatar" | "banner",
+): ImageAdjustment {
+  return {
+    fit: profile[`${prefix}Fit`] as string | null | undefined,
+    posX: profile[`${prefix}PosX`] as number | null | undefined,
+    posY: profile[`${prefix}PosY`] as number | null | undefined,
+    zoom: profile[`${prefix}Zoom`] as number | null | undefined,
+  };
 }
 
 /**
@@ -38,6 +57,9 @@ function Avatar({
   // so the outer box stays the theme's diameter either way.
   const ringPad = borderStyle.padding === 6 ? 6 : 2;
   const inner = `calc(var(--lb-avatar-size, 94px) - ${(ringPad * 2)}px)`;
+  // Per-upload adjustment (Spec: Image-Positioning): fit/focus/zoom. NULL
+  // metadata → cover/centered/no-zoom (pre-spec rendering).
+  const adjStyle = imageAdjustmentStyle(adjustment(profile, "avatar"));
 
   // Reveal lives on the wrapper; float on the inner box. Both are `animation`
   // so they'd clobber each other on the same element.
@@ -53,6 +75,7 @@ function Avatar({
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
+          overflow: "hidden",
         }}
       >
         {profile.avatarUrl ? (
@@ -62,8 +85,8 @@ function Avatar({
             width={180}
             height={180}
             unoptimized
-            className="block object-cover"
-            style={{ width: inner, height: inner, borderRadius: radius }}
+            className="block"
+            style={{ width: inner, height: inner, borderRadius: radius, ...adjStyle }}
             loading="eager"
             priority
           />
@@ -187,6 +210,7 @@ export function ProfileHeader({ profile, theme }: ProfileHeaderProps) {
   const float = theme?.avatarFloat === true || theme?.avatarFloat === "true";
 
   const banner = profile.bannerUrl;
+  const bannerAdj = imageAdjustmentStyle(adjustment(profile, "banner"));
 
   // ── Hero layout: banner image with overlaid name ──
   if (layout === "hero" && banner) {
@@ -199,8 +223,8 @@ export function ProfileHeader({ profile, theme }: ProfileHeaderProps) {
             width={1200}
             height={480}
             unoptimized
-            className="h-[180px] w-full object-cover sm:h-[240px]"
-            style={{ display: "block" }}
+            className="h-[180px] w-full sm:h-[240px]"
+            style={{ display: "block", ...bannerAdj }}
             priority
           />
           {/* Readability scrim */}
@@ -233,8 +257,8 @@ export function ProfileHeader({ profile, theme }: ProfileHeaderProps) {
           width={1200}
           height={300}
           unoptimized
-          className="h-[120px] w-full object-cover sm:h-[160px]"
-          style={{ display: "block" }}
+          className="h-[120px] w-full sm:h-[160px]"
+          style={{ display: "block", ...bannerAdj }}
           priority
         />
       </div>

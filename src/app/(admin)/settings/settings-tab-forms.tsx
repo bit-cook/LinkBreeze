@@ -5,12 +5,11 @@ import { localizeActionError } from "@/lib/action-error-i18n";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { Save, ExternalLink, Eye, EyeOff } from "lucide-react";
+import { ExternalLink, Eye, EyeOff } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { updateSettings } from "@/server/actions/settings";
 import { updatePageAction } from "@/server/actions/pages";
 import type { ThemeRow } from "@/server/queries";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FormField } from "@/components/ui/form-field";
 import {
@@ -22,6 +21,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { usePreview } from "@/components/admin/PreviewPane";
+import { useSavedAction, useAutosavedForm } from "@/hooks/use-saved-action";
 import { LanguageCard } from "./language-card";
 
 // ── Favicon upload (used in Appearance tab) ──────────────────────────────
@@ -114,10 +114,8 @@ export function GeneralTab({
   searchEngineHidden,
 }: GeneralTabProps) {
   const t = useTranslations("settings.general");
-  const tCommon = useTranslations("common");
-  const [pending, startTransition] = React.useTransition();
-  const [saved, setSaved] = React.useState(false);
-  const { reload: reloadPreview } = usePreview();
+  const startTransition = (fn: () => Promise<void>) => void fn();
+  const savedAction = useSavedAction();
   const router = useRouter();
 
   const handleSubmit = (formData: FormData) => {
@@ -126,22 +124,28 @@ export function GeneralTab({
       formData.set("seoTitle", formData.get("title") as string);
       formData.set("seoDescription", formData.get("description") as string);
       startTransition(async () => {
-        await updatePageAction(formData);
+        await savedAction.run(updatePageAction, formData);
         router.refresh();
-        reloadPreview();
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
       });
       return;
     }
     startTransition(async () => {
-      await updateSettings(formData);
+      await savedAction.run(updateSettings, formData);
       router.refresh();
-      reloadPreview();
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
     });
   };
+
+  // Debounced autosave: same submit path as the Save button; note the SEO
+  // mapping needs pageId-aware fields, so the flush rebuilds them here.
+  const { formRef, schedule, flushNow } = useAutosavedForm((formData) => {
+    if (pageId) {
+      formData.set("pageId", String(pageId));
+      formData.set("seoTitle", formData.get("title") as string);
+      formData.set("seoDescription", formData.get("description") as string);
+      return savedAction.run(updatePageAction, formData);
+    }
+    return savedAction.run(updateSettings, formData);
+  });
 
   return (
     <div className="flex flex-col gap-6">
@@ -152,7 +156,7 @@ export function GeneralTab({
           {t("description")}
         </CardDescription>
       </CardHeader>
-      <form action={handleSubmit}>
+      <form ref={formRef} action={handleSubmit} onBlurCapture={() => flushNow()}>
         <CardContent className="flex flex-col gap-4">
           <FormField
             label={t("pageSlug")}
@@ -190,6 +194,7 @@ export function GeneralTab({
               defaultValue={title}
               maxLength={120}
               placeholder={t("pageTitlePlaceholder")}
+              onChange={() => schedule()}
             />
           </FormField>
 
@@ -200,6 +205,7 @@ export function GeneralTab({
               defaultValue={description}
               maxLength={300}
               placeholder={t("seoPlaceholder")}
+              onChange={() => schedule()}
             />
           </FormField>
 
@@ -210,6 +216,7 @@ export function GeneralTab({
               defaultValue={footerText}
               maxLength={200}
               placeholder={t("footerPlaceholder")}
+              onChange={() => schedule()}
             />
           </FormField>
 
@@ -224,18 +231,12 @@ export function GeneralTab({
               defaultValue={privacyPolicy}
               maxLength={20000}
               placeholder={t("privacyPlaceholder")}
+              onChange={() => schedule()}
               className="min-h-[160px] w-full rounded-lg border border-input bg-transparent px-2.5 py-2 font-mono text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
               spellCheck={false}
             />
           </FormField>
         </CardContent>
-        <CardFooter className="gap-3">
-          <Button type="submit" disabled={pending}>
-            <Save className="size-4" />
-            {pending ? t("saving") : t("saveGeneral")}
-          </Button>
-          {saved ? <span className="text-sm text-muted-foreground">{tCommon("saved")}</span> : null}
-        </CardFooter>
       </form>
     </Card>
     <SearchVisibilityCard initialHidden={searchEngineHidden} slug={slug} />
@@ -334,12 +335,10 @@ export function IntegrationTab({
 }: IntegrationTabProps) {
   const t = useTranslations("settings.integration");
   const tInt = t;
-  const tCommon = useTranslations("common");
-  const [pending, startTransition] = React.useTransition();
-  const [saved, setSaved] = React.useState(false);
+  const startTransition = (fn: () => Promise<void>) => void fn();
   const [emailEnabled, setEmailEnabled] = React.useState(emailCapture);
   const [shareOn, setShareOn] = React.useState(shareEnabled);
-  const { reload: reloadPreview } = usePreview();
+  const savedAction = useSavedAction();
   const router = useRouter();
 
   const handleSubmit = (formData: FormData) => {
@@ -348,22 +347,33 @@ export function IntegrationTab({
     if (pageId) {
       formData.set("pageId", String(pageId));
       startTransition(async () => {
-        await updatePageAction(formData);
+        await savedAction.run(updatePageAction, formData);
         router.refresh();
-        reloadPreview();
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
       });
       return;
     }
     startTransition(async () => {
-      await updateSettings(formData);
+      await savedAction.run(updateSettings, formData);
       router.refresh();
-      reloadPreview();
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
     });
   };
+
+  // Debounced autosave: the toggles' current state rides via a ref so the
+  // flush always carries the same checkbox contract as an explicit save.
+  const toggleStateRef = React.useRef({ emailEnabled, shareOn });
+  React.useEffect(() => {
+    toggleStateRef.current = { emailEnabled, shareOn };
+  }, [emailEnabled, shareOn]);
+  const { formRef, schedule, flushNow } = useAutosavedForm((formData) => {
+    const { emailEnabled: email, shareOn: share } = toggleStateRef.current;
+    formData.set("emailCapture", email ? "on" : "off");
+    formData.set("shareEnabled", share ? "on" : "off");
+    if (pageId) {
+      formData.set("pageId", String(pageId));
+      return savedAction.run(updatePageAction, formData);
+    }
+    return savedAction.run(updateSettings, formData);
+  });
 
   return (
     <Card>
@@ -373,7 +383,7 @@ export function IntegrationTab({
           {t("description")}
         </CardDescription>
       </CardHeader>
-      <form action={handleSubmit}>
+      <form ref={formRef} action={handleSubmit} onBlurCapture={() => flushNow()}>
         <CardContent className="flex flex-col gap-4">
           {pageId ? null : (
             <input type="hidden" name="slug" value={slug} />
@@ -390,6 +400,7 @@ export function IntegrationTab({
               defaultValue={analyticsScript || ""}
               maxLength={2000}
               placeholder={'<script defer data-domain="example.com" src="https://plausible.io/js/script.js"></script>'}
+              onChange={() => schedule()}
               className="min-h-[80px] w-full rounded-lg border border-input bg-transparent px-2.5 py-2 font-mono text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 md:text-sm dark:bg-input/30"
               spellCheck={false}
             />
@@ -400,7 +411,13 @@ export function IntegrationTab({
             hint={tInt.rich("emailCaptureHintRich", {})}
           >
             <label className="flex items-center gap-2 text-sm">
-              <Switch checked={emailEnabled} onCheckedChange={setEmailEnabled} />
+              <Switch
+                checked={emailEnabled}
+                onCheckedChange={(v) => {
+                  setEmailEnabled(v);
+                  schedule();
+                }}
+              />
               {emailEnabled ? t("enabled") : t("disabled")}
             </label>
           </FormField>
@@ -417,6 +434,7 @@ export function IntegrationTab({
               defaultValue={consentText || ""}
               maxLength={500}
               placeholder={t("consentPlaceholder")}
+              onChange={() => schedule()}
             />
           </FormField>
           ) : null}
@@ -426,18 +444,17 @@ export function IntegrationTab({
             hint={tInt.rich("shareBlockHintRich", { em: (chunk) => <em>{chunk}</em> })}
           >
             <label className="flex items-center gap-2 text-sm">
-              <Switch checked={shareOn} onCheckedChange={setShareOn} />
+              <Switch
+                checked={shareOn}
+                onCheckedChange={(v) => {
+                  setShareOn(v);
+                  schedule();
+                }}
+              />
               {shareOn ? t("enabled") : t("disabled")}
             </label>
           </FormField>
         </CardContent>
-        <CardFooter className="gap-3">
-          <Button type="submit" disabled={pending}>
-            <Save className="size-4" />
-            {pending ? t("saving") : t("saveIntegration")}
-          </Button>
-          {saved ? <span className="text-sm text-muted-foreground">{tCommon("saved")}</span> : null}
-        </CardFooter>
       </form>
     </Card>
   );
@@ -447,6 +464,7 @@ export function IntegrationTab({
 
 interface AppearanceTabProps {
   pageId?: number;
+  slug?: string;
   customCss: string;
   faviconUrl: string;
   themes: ThemeRow[];
@@ -455,6 +473,7 @@ interface AppearanceTabProps {
 
 export function AppearanceTab({
   pageId,
+  slug,
   customCss,
   faviconUrl: initialFaviconUrl,
   themes,
@@ -462,9 +481,8 @@ export function AppearanceTab({
 }: AppearanceTabProps) {
   const t = useTranslations("settings.appearance");
   const tInt = useTranslations("settings.integration");
-  const tCommon = useTranslations("common");
-  const [pending, startTransition] = React.useTransition();
-  const [saved, setSaved] = React.useState(false);
+  const startTransition = (fn: () => Promise<void>) => void fn();
+  const savedAction = useSavedAction();
   const { reload: reloadPreview } = usePreview();
   const router = useRouter();
   const [selectedTheme, setSelectedTheme] = React.useState<string>(
@@ -482,22 +500,50 @@ export function AppearanceTab({
       formData.set("pageId", String(pageId));
       if (selectedTheme) formData.set("themeId", selectedTheme);
       startTransition(async () => {
-        await updatePageAction(formData);
+        await savedAction.run(updatePageAction, formData);
         router.refresh();
-        reloadPreview();
-        setSaved(true);
-        setTimeout(() => setSaved(false), 2000);
       });
       return;
     }
     if (selectedTheme) formData.set("activeThemeId", selectedTheme);
     startTransition(async () => {
-      await updateSettings(formData);
+      await savedAction.run(updateSettings, formData);
       router.refresh();
-      reloadPreview();
-      setSaved(true);
-      setTimeout(() => setSaved(false), 2000);
     });
+  };
+
+  // Debounced autosave for the customCss textarea; theme chips already save
+  // immediately on click (see selectTheme below).
+  const selectedThemeRef = React.useRef(selectedTheme);
+  React.useEffect(() => {
+    selectedThemeRef.current = selectedTheme;
+  }, [selectedTheme]);
+  const { formRef, schedule, flushNow } = useAutosavedForm((formData) => {
+    const theme = selectedThemeRef.current;
+    if (pageId) {
+      formData.set("pageId", String(pageId));
+      if (theme) formData.set("themeId", theme);
+      return savedAction.run(updatePageAction, formData);
+    }
+    if (theme) formData.set("activeThemeId", theme);
+    return savedAction.run(updateSettings, formData);
+  });
+
+  // Theme chip click = immediate save (a deliberate choice, like the old
+  // Save flow — selection is intentional and rare, unlike typing).
+  const selectTheme = (id: string) => {
+    setSelectedTheme(id);
+    const fd = new FormData();
+    if (pageId) {
+      fd.set("pageId", String(pageId));
+      fd.set("themeId", id);
+      if (faviconUrl) fd.set("faviconUrl", faviconUrl);
+      void savedAction.run(updatePageAction, fd);
+    } else {
+      fd.set("slug", slug ?? "");
+      fd.set("activeThemeId", id);
+      void savedAction.run(updateSettings, fd);
+    }
   };
 
   return (
@@ -508,7 +554,7 @@ export function AppearanceTab({
           {t("description")}
         </CardDescription>
       </CardHeader>
-      <form action={handleSubmit}>
+      <form ref={formRef} action={handleSubmit} onBlurCapture={() => flushNow()}>
         <CardContent className="flex flex-col gap-4">
           {themes.length > 0 ? (
             <FormField label={t("activeTheme")}>
@@ -521,7 +567,7 @@ export function AppearanceTab({
                     <button
                       key={t.id}
                       type="button"
-                      onClick={() => setSelectedTheme(String(t.id))}
+                      onClick={() => selectTheme(String(t.id))}
                       className={
                         "flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-sm transition-colors hover:bg-muted " +
                         (isActive ? "border-violet bg-violet/10 text-lavender" : "border-border")
@@ -550,18 +596,12 @@ export function AppearanceTab({
               defaultValue={customCss}
               maxLength={10000}
               placeholder={"/* Custom styles for your public page */\n:root { --accent: #533fd6; }"}
+              onChange={() => schedule()}
               className="min-h-[160px] w-full rounded-lg border border-input bg-background/50 px-3 py-2.5 font-mono text-xs leading-relaxed transition-colors outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50"
               spellCheck={false}
             />
           </FormField>
         </CardContent>
-        <CardFooter className="gap-3">
-          <Button type="submit" disabled={pending}>
-            <Save className="size-4" />
-            {pending ? t("saving") : t("saveAppearance")}
-          </Button>
-          {saved ? <span className="text-sm text-muted-foreground">{tCommon("saved")}</span> : null}
-        </CardFooter>
       </form>
     </Card>
   );

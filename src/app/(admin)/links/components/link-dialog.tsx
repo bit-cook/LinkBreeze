@@ -37,6 +37,7 @@ import { LucideIcon, isLucideIconName } from "@/components/public/LucideIcon";
 import { ImagePlus, Sparkles } from "lucide-react";
 import { IconPicker } from "./icon-picker";
 import type { IconMode } from "@/lib/link-icons";
+import { useSavedAction } from "@/hooks/use-saved-action";
 
 /** Derive the dialog's initial icon mode from an editing row (#91). */
 function initialIconMode(editing?: LinkRow | null): IconMode {
@@ -136,6 +137,7 @@ export function LinkDialog({ open, onOpenChange, editing, pageId, sections = [] 
   const [showUTM, setShowUTM] = React.useState(hadUTM);
 
   const router = useRouter();
+  const savedAction = useSavedAction();
   // Action error surfaced inline (upload too large, bad SVG, unknown icon…).
   const [actionError, setActionError] = React.useState<string | null>(null);
 
@@ -237,7 +239,9 @@ export function LinkDialog({ open, onOpenChange, editing, pageId, sections = [] 
     }
 
     startTransition(async () => {
-      const result = editing ? await updateLink(formData) : await createLink(formData);
+      const result = editing
+        ? await savedAction.run(updateLink, formData)
+        : await savedAction.run(createLink, formData);
       if (!result.success) {
         setActionError(result.error ?? null);
         return;

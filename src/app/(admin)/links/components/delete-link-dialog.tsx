@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { deleteLink } from "@/server/actions/links";
 import type { LinkRow } from "@/server/queries";
+import { useSavedAction } from "@/hooks/use-saved-action";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -29,13 +30,14 @@ export function DeleteLinkDialog({
   const t = useTranslations("linksPage");
   const [pending, startTransition] = React.useTransition();
   const router = useRouter();
+  const savedAction = useSavedAction();
 
   const handleDelete = () => {
     if (!link) return;
     startTransition(async () => {
       const fd = new FormData();
       fd.set("id", String(link.id));
-      await deleteLink(fd);
+      await savedAction.run(deleteLink, fd);
       router.refresh();
       onOpenChange(false);
     });

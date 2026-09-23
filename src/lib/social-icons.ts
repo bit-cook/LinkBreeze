@@ -22,7 +22,11 @@ export type SocialPlatform =
   | "linktree" | "bento";
 
 export const SUPPORTED_PLATFORMS: SocialPlatform[] = [
-  "instagram", "tiktok", "youtube", "twitter", "x", "github",
+  // `twitter` is intentionally NOT listed: it's a recognized alias (old saved
+  // links keep rendering) but "X (Twitter)" and "X" both drew the same X logo,
+  // so the picker offered the same icon twice. Detection now maps every
+  // twitter.com/x.com URL to the single `x` entry below.
+  "instagram", "tiktok", "youtube", "x", "github",
   "discord", "twitch", "spotify", "linkedin", "telegram",
   "whatsapp", "email", "threads", "bluesky", "mastodon",
   "reddit", "facebook", "pinterest", "snapchat", "patreon",
@@ -76,7 +80,7 @@ const RULES: Rule[] = [
   { platform: "instagram", test: (h) => isHost(h, "instagram.com") },
   { platform: "tiktok", test: (h) => isHost(h, "tiktok.com") },
   { platform: "youtube", test: (h) => isHost(h, "youtube.com") || isHost(h, "youtu.be") },
-  { platform: "twitter", test: (h) => isHost(h, "twitter.com") || isHost(h, "x.com") },
+  { platform: "x", test: (h) => isHost(h, "twitter.com") || isHost(h, "x.com") },
   { platform: "github", test: (h) => isHost(h, "github.com") },
   { platform: "discord", test: (h, v) => isHost(h, "discord.gg") || isHost(h, "discord.com") || v.startsWith("discord:") },
   { platform: "twitch", test: (h) => isHost(h, "twitch.tv") },
