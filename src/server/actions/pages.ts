@@ -27,6 +27,21 @@ const slugSchema = z
   .max(80, "Slug must be 80 characters or less")
   .regex(/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/i, "Slug can only contain letters, numbers, and hyphens");
 
+/**
+ * Media URL validation for <img>/<video src> values (avatar, banner,
+ * background). Only https://, http://, and site-relative "/…" paths are
+ * accepted — "javascript:" / "data:" URIs are rejected at this single
+ * boundary before they can reach a src attribute anywhere (CodeQL
+ * js/xss-through-dom, alerts #20/#21).
+ */
+const safeMediaUrl = z
+  .string()
+  .max(2048)
+  .refine(
+    (v) => /^\/[^/]/.test(v) || /^https:\/\//i.test(v) || /^http:\/\//i.test(v),
+    "URL must be https://, http://, or a site-relative path",
+  );
+
 const createPageSchema = z.object({
   slug: slugSchema,
   title: z.string().max(80).optional().default(""),
@@ -71,8 +86,8 @@ const updatePageSchema = z.object({
   title: z.string().max(80).optional(),
   bio: z.string().max(300).optional(),
   badgeText: z.string().max(40).optional().nullable(),
-  avatarUrl: z.string().max(2048).optional().nullable(),
-  bannerUrl: z.string().max(2048).optional().nullable(),
+  avatarUrl: safeMediaUrl.optional().nullable(),
+  bannerUrl: safeMediaUrl.optional().nullable(),
   socialLinks: z.string().optional(),
   themeId: z.coerce.number().optional().nullable(),
   isPublished: z.boolean().optional(),
@@ -85,7 +100,7 @@ const updatePageSchema = z.object({
   customCss: z.string().max(10000).optional(),
   emailCapture: z.boolean().optional(),
   shareEnabled: z.boolean().optional(),
-  faviconUrl: z.string().max(500).optional().nullable(),
+  faviconUrl: safeMediaUrl.max(500).optional().nullable(),
   privacyPolicy: z.string().max(20000).optional(),
   qrSettings: z.string().max(500).optional(),
   // Per-upload image adjustments (Spec: Image-Positioning). Numbers arrive

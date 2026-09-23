@@ -67,7 +67,11 @@ describe("vCard security & adversarial inputs", () => {
     const semis = ";".repeat(120);
     const vc = buildVCard({ ...base, title: "Jane", bio: semis });
     const unfolded = vc.replace(/\r\n /g, "");
-    expect(unfolded).toContain(`NOTE:${semis.replace(/;/g, "\\;")}`);
+    // escapeVcardValue escapes backslash, semicolon, comma and newline; the
+    // fixture here only contains semicolons, so a plain character class is
+    // sufficient (no partial backslash-escape pattern for CodeQL to flag).
+    const expected = `NOTE:${semis.replace(/[;\\]/g, (c) => `\\${c}`)}`;
+    expect(unfolded).toContain(expected);
   });
 
   it("very long single-word title does not produce an unfoldable line", () => {

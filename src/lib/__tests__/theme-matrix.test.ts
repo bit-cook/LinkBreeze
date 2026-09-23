@@ -24,7 +24,7 @@ const SCHEMA_DEFAULTS = {
   backgroundType: "gradient",
   backgroundValue: "#1a1a2e,#16213e",
   backgroundAngle: "160deg",
-  backgroundImageUrl: "",
+  backgroundImageUrl: "https://example.com/bg.jpg",
   overlayColor: "#000000",
   overlayOpacity: "0",
   primaryColor: "#0f3460",

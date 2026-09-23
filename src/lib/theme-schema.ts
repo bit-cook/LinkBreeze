@@ -25,6 +25,20 @@ export const cssColor = z
     "Invalid color",
   );
 
+/**
+ * Media URL validation for background image/video URLs. Only https://,
+ * http://, and site-relative "/…" paths are accepted — the URL lands in a
+ * CSS `url('…')` and a <video src>, and scheme allowlisting here is the
+ * single choke point that keeps "javascript:" / "data:" URIs out.
+ */
+export const safeMediaUrl = z
+  .string()
+  .max(2000)
+  .refine(
+    (v) => /^\/[^/]/.test(v) || /^https:\/\//i.test(v) || /^http:\/\//i.test(v),
+    "URL must be https://, http://, or a site-relative path",
+  );
+
 export const customSchema = z.object({
   // Background
   backgroundType: z
@@ -43,7 +57,7 @@ export const customSchema = z.object({
     .optional(),
   backgroundValue: z.string().max(500).optional(),
   backgroundAngle: z.string().max(20).optional(),
-  backgroundImageUrl: z.string().max(2000).optional(),
+  backgroundImageUrl: safeMediaUrl.optional(),
   backgroundFit: z.enum(["cover", "contain", "tile"]).optional(),
   backgroundPosition: z
     .string()
